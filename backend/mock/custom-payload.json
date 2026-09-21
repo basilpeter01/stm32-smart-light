@@ -1,5 +1,5 @@
 {
-  "node_id": "POLE-01",
+  "node_id": "POLE-02",
   "ambient_light_adc": 3000,
   "motion": true,
   "led_pwm": 100,
