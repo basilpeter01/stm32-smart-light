@@ -11,10 +11,10 @@ export default function Header({ wsConnected, mqttActive }) {
         </div>
         <div>
           <h1 className="text-base font-bold text-white tracking-wide">
-            Smart Street Light Fleet Monitor
+            Smart Street Light Monitor
           </h1>
           <p className="text-xs text-slate-400">
-            Real-Time IoT Edge Telemetry
+            Real-Time Node Telemetry
           </p>
         </div>
       </div>
