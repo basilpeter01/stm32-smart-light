@@ -47,13 +47,21 @@ export default function NodeList({ nodes = [], selectedNodeId, onSelectNode }) {
               {/* Metrics: PWM and Current Draw */}
               <div className="grid grid-cols-2 gap-2 mt-2 pt-2 border-t border-slate-700/60 text-xs font-mono">
                 <div>
-                  <span className="text-slate-400 block text-[10px] uppercase">LED PWM</span>
-                  <span className="text-slate-200 font-semibold">{node.led_pwm ?? 0}%</span>
+                  <span className="text-slate-400 block text-[10px] uppercase">
+                    {isOnline ? 'LED PWM' : 'Last PWM'}
+                  </span>
+                  <span className={isOnline ? 'text-slate-200 font-semibold' : 'text-slate-500'}>
+                    {node.timestamp ? `${node.led_pwm ?? 0}%` : '--'}
+                  </span>
                 </div>
                 <div>
-                  <span className="text-slate-400 block text-[10px] uppercase">Current</span>
-                  <span className="text-slate-200 font-semibold">
-                    {node.current_ma != null ? Number(node.current_ma).toFixed(1) : '0.0'} mA
+                  <span className="text-slate-400 block text-[10px] uppercase">
+                    {isOnline ? 'Current' : 'Last Current'}
+                  </span>
+                  <span className={isOnline ? 'text-slate-200 font-semibold' : 'text-slate-500'}>
+                    {node.timestamp && node.current_ma != null
+                      ? `${Number(node.current_ma).toFixed(1)} mA`
+                      : '--'}
                   </span>
                 </div>
               </div>

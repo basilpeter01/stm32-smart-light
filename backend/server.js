@@ -43,7 +43,7 @@ const Telemetry = mongoose.model('Telemetry', telemetrySchema);
 const latestNodesState = new Map();
 const lastDbSaveTime = new Map();
 const nodeTimers = new Map();
-const OFFLINE_TIMEOUT = 30000;
+const OFFLINE_TIMEOUT = 120000; // 2 minutes
 
 // Connect to MongoDB
 mongoose.connect(process.env.MONGO_URI, {

@@ -65,8 +65,10 @@ export default function CurrentGraph({ historyData = [], currentNode }) {
 
         <div className="flex items-center gap-4 text-xs font-mono">
           <div>
-            <span className="text-slate-400">Live: </span>
-            <span className="text-emerald-400 font-bold">{currentMa.toFixed(1)} mA</span>
+            <span className="text-slate-400">{currentNode?.status === 'ONLINE' ? 'Live: ' : 'Last Known: '}</span>
+            <span className={currentNode?.status === 'ONLINE' ? 'text-emerald-400 font-bold' : 'text-slate-400 font-semibold'}>
+              {currentMa > 0 ? `${currentMa.toFixed(1)} mA` : '--'}
+            </span>
           </div>
           <div>
             <span className="text-slate-400">Safe Max: </span>
