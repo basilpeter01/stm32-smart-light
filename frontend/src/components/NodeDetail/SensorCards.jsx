@@ -41,13 +41,12 @@ export default function SensorCards({ node }) {
         </div>
 
         <div className="mt-2 pt-2 border-t border-slate-700/60">
-          <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-mono font-medium ${
-            isOffline
-              ? 'bg-slate-700/30 text-slate-400'
-              : isNight
+          <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-mono font-medium ${isOffline
+            ? 'bg-slate-700/30 text-slate-400'
+            : isNight
               ? 'bg-blue-500/20 text-blue-300'
               : 'bg-amber-500/20 text-amber-300'
-          }`}>
+            }`}>
             {isOffline ? 'Offline' : isNight ? 'Night Mode (<800)' : 'Day Mode (>=800)'}
           </span>
         </div>
@@ -76,14 +75,13 @@ export default function SensorCards({ node }) {
         </div>
 
         <div className="mt-2 pt-2 border-t border-slate-700/60">
-          <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-mono font-medium ${
-            isOffline
-              ? 'bg-slate-700/30 text-slate-400'
-              : motionActive
+          <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-mono font-medium ${isOffline
+            ? 'bg-slate-700/30 text-slate-400'
+            : motionActive
               ? 'bg-amber-500/20 text-amber-300'
               : 'bg-slate-700/40 text-slate-400'
-          }`}>
-            {isOffline ? 'Offline' : motionActive ? 'Active Presence' : 'Idle / No Movement'}
+            }`}>
+            {isOffline ? 'Offline' : motionActive ? 'Active' : 'Idle / No Movement'}
           </span>
         </div>
       </div>
@@ -105,18 +103,17 @@ export default function SensorCards({ node }) {
         </div>
 
         <div className="mt-2 pt-2 border-t border-slate-700/60">
-          <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-mono font-medium ${
-            isOffline
-              ? 'bg-slate-700/30 text-slate-400'
-              : 'bg-emerald-500/15 text-emerald-300'
-          }`}>
+          <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-mono font-medium ${isOffline
+            ? 'bg-slate-700/30 text-slate-400'
+            : 'bg-emerald-500/15 text-emerald-300'
+            }`}>
             {isOffline
               ? 'Offline'
               : pwm === 100
-              ? 'High Illumination (100%)'
-              : pwm === 20
-              ? 'Eco Dimming (20%)'
-              : 'Standby (0%)'}
+                ? 'Illumination (100%)'
+                : pwm === 20
+                  ? 'Dimming (20%)'
+                  : 'Standby (0%)'}
           </span>
         </div>
       </div>
