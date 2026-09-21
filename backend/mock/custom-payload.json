@@ -1,0 +1,8 @@
+{
+  "node_id": "POLE-01",
+  "ambient_light_adc": 3000,
+  "motion": true,
+  "led_pwm": 100,
+  "current_ma": 140.5,
+  "fault_code": 0
+}
