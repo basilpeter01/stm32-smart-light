@@ -5,7 +5,7 @@
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
-    "mock": "node mock-generator.js",
+    "mock": "node mock/mock-generator.js",
     "publish-custom": "node custom-publisher.js"
   },
   "dependencies": {
