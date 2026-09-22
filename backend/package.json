@@ -6,7 +6,7 @@
   "scripts": {
     "start": "node server.js",
     "mock": "node mock/mock-generator.js",
-    "publish-custom": "node custom-publisher.js"
+    "publish-custom": "node mock/custom-publisher.js"
   },
   "dependencies": {
     "cors": "^2.8.6",
