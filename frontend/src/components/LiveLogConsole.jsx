@@ -20,7 +20,7 @@ export default function LiveLogConsole({ logs = [], onClearLogs }) {
         <div className="flex items-center gap-2">
           <Terminal className="w-4 h-4 text-emerald-400" />
           <span className="text-xs font-mono font-semibold text-slate-200">
-            Live Telemetry Packets (Socket.io)
+            Live Telemetry
           </span>
           <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-slate-800 text-slate-400">
             {logs.length} packets
@@ -31,11 +31,10 @@ export default function LiveLogConsole({ logs = [], onClearLogs }) {
           {/* Auto-scroll toggle */}
           <button
             onClick={() => setAutoScroll(!autoScroll)}
-            className={`p-1 px-2 rounded text-xs flex items-center gap-1 font-mono transition-colors border ${
-              autoScroll
-                ? 'bg-slate-800 text-slate-300 border-slate-700 hover:bg-slate-700'
-                : 'bg-amber-500/15 text-amber-300 border-amber-500/30'
-            }`}
+            className={`p-1 px-2 rounded text-xs flex items-center gap-1 font-mono transition-colors border ${autoScroll
+              ? 'bg-slate-800 text-slate-300 border-slate-700 hover:bg-slate-700'
+              : 'bg-amber-500/15 text-amber-300 border-amber-500/30'
+              }`}
             title={autoScroll ? "Pause auto-scroll inside terminal" : "Resume auto-scroll inside terminal"}
           >
             {autoScroll ? <Pause className="w-3 h-3 text-slate-400" /> : <Play className="w-3 h-3 text-amber-400" />}
@@ -71,7 +70,7 @@ export default function LiveLogConsole({ logs = [], onClearLogs }) {
         >
           {logs.length === 0 ? (
             <div className="text-slate-600 italic py-2">
-              Listening for incoming packets from backend on event 'telemetry_update'...
+              Listening for incoming packets..
             </div>
           ) : (
             logs.map((log, index) => (
