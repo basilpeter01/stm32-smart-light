@@ -1,44 +1,44 @@
 # Smart Street Light IoT Prototype (MVP)
 
-This repository contains the Node.js backend and mock generator for the Smart Street Light IoT Prototype. The system subscribes to real-time telemetry from edge street light nodes over MQTT (HiveMQ Cloud), persists data to MongoDB Atlas, and provides a REST API and WebSocket stream to a frontend dashboard.
+This is a prototype project for a Smart Street Light Monitoring System. It collects live sensor data (light levels, motion detection, power usage) from street lights using MQTT, saves it to a database, and displays it on a live dashboard.
 
 ## Project Structure
 
-- `backend/` - Contains the Node.js Express server, MongoDB models, MQTT client, and the standalone mock generator.
-- `frontend/` - Contains the frontend dashboard for real-time monitoring.
+- `backend/` - Node.js Express server. Connects to HiveMQ Cloud (MQTT broker) to receive data and MongoDB Atlas to store it. Also handles WebSocket connections.
+- `frontend/` - React dashboard built with Vite, Tailwind CSS, and Recharts to view the live street light data.
 
-## Backend Setup
+## What's Included So Far
 
-1. **Install Dependencies:**
-   ```bash
-   cd backend
-   npm install
-   ```
+1. **Live Dashboard:** A clean, master-detail React UI that shows live status for all poles, current faults, and live updating graphs of power usage.
+2. **Backend Server:** Listens to MQTT telemetry data, broadcasts it to the frontend via Socket.io, and saves historical data to MongoDB.
+3. **Offline Detection:** The backend automatically marks a pole as "Offline" if it hasn't sent any data for 2 minutes.
+4. **Mock Data Generator:** A script to simulate live traffic, night/day cycles, and random faults across 4 virtual poles.
+5. **Custom Publisher Tool:** A testing script that lets us manually send custom MQTT JSON payloads to see how the dashboard reacts.
 
-2. **Environment Configuration:**
-   Copy the example environment file and fill in your credentials.
-   ```bash
-   cp .env.example .env
-   ```
-   *Required Variables:*
-   - `MQTT_URL`: HiveMQ TLS cluster URL (e.g., `mqtts://<your-cluster>.s1.eu.hivemq.cloud:8883`)
-   - `MQTT_USER` & `MQTT_PASSWORD`: HiveMQ cluster credentials
-   - `MONGO_URI`: MongoDB Atlas connection string
+## How to Run It
 
-3. **Start the Server:**
-   ```bash
-   npm run start
-   ```
-   The server will start on port `5000` (or the port specified in your `.env`) and automatically connect to MongoDB and HiveMQ.
+### 1. Start the Backend
+Open a terminal in the `backend/` folder and run:
+```bash
+npm install
+npm run start
+```
+*Note: Make sure your `.env` file is set up with your MongoDB and HiveMQ credentials.*
 
-4. **Run the Mock Generator:**
-   To simulate live traffic, dynamic lighting, and faults from 4 virtual poles during a demo:
-   ```bash
-   npm run mock
-   ```
+### 2. Start the Frontend Dashboard
+Open a second terminal in the `frontend/` folder and run:
+```bash
+npm install
+npm run dev
+```
 
-## Features
-- **Secure Connectivity:** MQTTS connectivity over TLS to HiveMQ Cloud.
-- **Real-time Updates:** Event broadcasting using `Socket.io` when telemetry is received.
-- **Data Persistence:** Automatic database persistence to MongoDB every 30 seconds or immediately upon detecting a fault.
-- **Offline Detection:** An in-memory heartbeat check that marks a node as offline if no packets are received for more than 30 seconds.
+### 3. Generate Test Data
+If you don't have physical street lights connected, you can simulate data. Open a third terminal in the `backend/` folder:
+- **To run the automated mock generator (simulates 4 poles):**
+  ```bash
+  npm run mock
+  ```
+- **To send a manual test payload (edit `backend/mock/custom-payload.json` first):**
+  ```bash
+  npm run publish-custom
+  ```
