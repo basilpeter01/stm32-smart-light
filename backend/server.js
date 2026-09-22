@@ -14,16 +14,24 @@ const mqtt = require('mqtt');
 const { Server } = require('socket.io');
 const cors = require('cors');
 
+const ALLOWED_ORIGINS = [
+  'http://localhost:5173', // localhost vite server
+];
+
+if (process.env.FRONTEND_URL) {
+  ALLOWED_ORIGINS.push(process.env.FRONTEND_URL);
+}
+
 const app = express();
 const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
-    origin: '*',
+    origin: ALLOWED_ORIGINS,
     methods: ['GET', 'POST']
   }
 });
 
-app.use(cors());
+app.use(cors({ origin: ALLOWED_ORIGINS }));
 app.use(express.json());
 
 // MongoDB Schema & Model
