@@ -87,9 +87,19 @@ mqttClient.on('error', (err) => {
   console.error('MQTT connection error:', err);
 });
 
+let totalPackets = 0;
+let packetsLastInterval = 0;
+
+setInterval(() => {
+  console.log(`Info: ${packetsLastInterval} packets received in last 30 sec(${totalPackets} total)`);
+  packetsLastInterval = 0;
+}, 30000);
+
 mqttClient.on('message', async (topic, message) => {
   if (topic === 'smartlight/telemetry') {
     try {
+      totalPackets++;
+      packetsLastInterval++;
       const payload = JSON.parse(message.toString());
       const now = Date.now();
 
