@@ -104,7 +104,12 @@ mqttClient.on('message', async (topic, message) => {
       const now = Date.now();
 
       const enrichedPayload = {
-        ...payload,
+        node_id: payload.node_id,
+        ambient_light_adc: payload.ambient_light_adc,
+        motion: payload.motion,
+        led_pwm: payload.led_pwm,
+        current_ma: payload.current_ma,
+        fault_code: payload.fault_code,
         timestamp: now,
         status: 'ONLINE'
       };
@@ -166,7 +171,8 @@ app.get('/api/nodes/:id/history', async (req, res) => {
 app.get('/api/alerts', async (req, res) => {
   try {
     const alerts = await Telemetry.find({ fault_code: { $gt: 0 } })
-      .sort({ timestamp: -1 });
+      .sort({ timestamp: -1 })
+      .limit(100);
     res.json(alerts);
   } catch (error) {
     res.status(500).json({ error: 'Internal server error' });
