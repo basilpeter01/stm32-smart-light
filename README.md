@@ -79,16 +79,8 @@ cd stm32-smart-light
    npm install
    ```
 
-2. Create a `.env` file in `backend/` based on the provided `.env.example`:
-   ```env
-   PORT=5000
-   MQTT_URL=mqtts://your-cluster-id.s1.eu.hivemq.cloud:8883
-   MQTT_USER=your_hivemq_username
-   MQTT_PASSWORD=your_hivemq_password
-   MONGO_URI=mongodb+srv://<user>:<password>@cluster0.mongodb.net/smartlight?retryWrites=true&w=majority
-   FRONTEND_URL=http://localhost:5173
-   ```
-
+2. Create a `.env` file in `backend/` based on the provided `.env.example`.
+  
 3. Ensure MongoDB Atlas Network Access allows connections from your current IP (or `0.0.0.0/0` for cloud deployments).
 
 4. Start the backend server:
