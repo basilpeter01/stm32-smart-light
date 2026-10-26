@@ -9,28 +9,26 @@ import {
   ReferenceLine,
   CartesianGrid
 } from 'recharts';
-import { Activity } from 'lucide-react';
-import { OVERCURRENT_CEILING_MA } from '../../constants';
+import { Sun, Moon, Activity } from 'lucide-react';
+import { LDR_DAY_THRESHOLD, LDR_MAX_SCALE } from '../../constants';
 
 function CustomTooltip({ active, payload, label }) {
   if (active && payload && payload.length) {
-    const current = payload[0].value;
-    const isOvercurrent = current >= OVERCURRENT_CEILING_MA;
+    const ldrVal = payload[0].value;
+    const isNight = ldrVal < LDR_DAY_THRESHOLD;
 
     return (
       <div className="bg-slate-900 border border-slate-700 px-3 py-2 rounded-lg shadow-xl font-mono text-xs">
         <div className="text-slate-400 text-[11px] mb-1">{label}</div>
         <div className="flex items-center gap-2">
-          <span className="text-slate-400">Current:</span>
-          <span className={`font-bold ${isOvercurrent ? 'text-rose-400' : 'text-emerald-400'}`}>
-            {typeof current === 'number' ? current.toFixed(1) : current} mA
+          <span className="text-slate-400">LDR:</span>
+          <span className={`font-bold ${isNight ? 'text-blue-400' : 'text-amber-400'}`}>
+            {ldrVal} adc
           </span>
         </div>
-        {isOvercurrent && (
-          <div className="text-rose-400 text-[10px] mt-1 font-semibold">
-            Overcurrent Warning (&gt;160 mA)
-          </div>
-        )}
+        <div className={`text-[10px] mt-1 font-semibold ${isNight ? 'text-blue-300' : 'text-amber-300'}`}>
+          {isNight ? 'Night Condition (<500)' : 'Day Condition (>=500)'}
+        </div>
       </div>
     );
   }
@@ -38,7 +36,8 @@ function CustomTooltip({ active, payload, label }) {
 }
 
 export default function CurrentGraph({ historyData = [], currentNode }) {
-  const currentMa = currentNode ? Number(currentNode.current_ma) || 0 : 0;
+  const liveLdr = currentNode ? Number(currentNode.ldr_value ?? currentNode.ambient_light_adc) || 0 : 0;
+  const isNight = liveLdr < LDR_DAY_THRESHOLD;
 
   // Format data for Recharts (last 30 readings)
   const chartData = historyData.slice(-30).map((d, index) => {
@@ -48,7 +47,7 @@ export default function CurrentGraph({ historyData = [], currentNode }) {
 
     return {
       time: timeStr,
-      current_ma: Number(d.current_ma) || 0
+      ldr_value: Number(d.ldr_value ?? d.ambient_light_adc ?? d.current_ma) || 0
     };
   });
 
@@ -57,22 +56,23 @@ export default function CurrentGraph({ historyData = [], currentNode }) {
       {/* Header */}
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
-          <Activity className="w-4 h-4 text-emerald-400" />
+          <Activity className="w-4 h-4 text-sky-400" />
           <h3 className="text-sm font-bold text-white uppercase tracking-wider">
-            Current Draw History
+            Ambient Light (LDR) History
           </h3>
         </div>
 
         <div className="flex items-center gap-4 text-xs font-mono">
-          <div>
-            <span className="text-slate-400">{currentNode?.status === 'ONLINE' ? 'Live: ' : 'Last Known: '}</span>
-            <span className={currentNode?.status === 'ONLINE' ? 'text-emerald-400 font-bold' : 'text-slate-400 font-semibold'}>
-              {currentMa > 0 ? `${currentMa.toFixed(1)} mA` : '--'}
+          <div className="flex items-center gap-1.5">
+            {isNight ? <Moon className="w-3.5 h-3.5 text-blue-400" /> : <Sun className="w-3.5 h-3.5 text-amber-400" />}
+            <span className="text-slate-400">{currentNode?.status === 'ONLINE' ? 'Live LDR: ' : 'Last LDR: '}</span>
+            <span className={currentNode?.status === 'ONLINE' ? 'text-sky-400 font-bold' : 'text-slate-400 font-semibold'}>
+              {currentNode?.timestamp ? `${liveLdr} adc` : '--'}
             </span>
           </div>
           <div>
-            <span className="text-slate-400">Safe Max: </span>
-            <span className="text-amber-400 font-bold">{OVERCURRENT_CEILING_MA.toFixed(1)} mA</span>
+            <span className="text-slate-400">Day Threshold: </span>
+            <span className="text-amber-400 font-bold">{LDR_DAY_THRESHOLD} adc</span>
           </div>
         </div>
       </div>
@@ -85,7 +85,7 @@ export default function CurrentGraph({ historyData = [], currentNode }) {
           </div>
         ) : (
           <ResponsiveContainer width="100%" height="100%">
-            <LineChart data={chartData} margin={{ top: 10, right: 15, left: -20, bottom: 0 }}>
+            <LineChart data={chartData} margin={{ top: 10, right: 15, left: -10, bottom: 0 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="#334155" vertical={false} />
 
               <XAxis
@@ -97,22 +97,22 @@ export default function CurrentGraph({ historyData = [], currentNode }) {
               />
 
               <YAxis
-                domain={[0, 200]}
+                domain={[0, LDR_MAX_SCALE]}
                 stroke="#64748b"
                 tick={{ fill: '#94a3b8', fontSize: 10, fontFamily: 'monospace' }}
                 tickLine={{ stroke: '#475569' }}
-                unit=" mA"
-                ticks={[0, 50, 100, 150, 200]}
+                unit=" adc"
+                ticks={[0, 250, 500, 750, 1000]}
               />
 
               <Tooltip content={<CustomTooltip />} />
 
               <ReferenceLine
-                y={OVERCURRENT_CEILING_MA}
+                y={LDR_DAY_THRESHOLD}
                 stroke="#f59e0b"
                 strokeDasharray="4 4"
                 label={{
-                  value: '160 mA Max',
+                  value: '500 Day Mode Threshold',
                   fill: '#f59e0b',
                   position: 'top',
                   fontSize: 10,
@@ -122,11 +122,11 @@ export default function CurrentGraph({ historyData = [], currentNode }) {
 
               <Line
                 type="monotone"
-                dataKey="current_ma"
-                stroke="#10b981"
+                dataKey="ldr_value"
+                stroke="#38bdf8"
                 strokeWidth={2}
-                dot={{ r: 2, fill: '#10b981' }}
-                activeDot={{ r: 5, fill: '#34d399' }}
+                dot={{ r: 2, fill: '#38bdf8' }}
+                activeDot={{ r: 5, fill: '#7dd3fc' }}
                 isAnimationActive={false}
               />
             </LineChart>
