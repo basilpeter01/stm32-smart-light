@@ -67,14 +67,7 @@ function processAndForwardPacket(rawLine) {
       return;
     }
 
-    // Map new hardware device_id to legacy backend node_id (e.g. LIGHT_01 -> POLE-01)
-    const rawId = payload.device_id || payload.node_id;
-    let legacyNodeId = rawId;
-    if (rawId.startsWith('LIGHT_')) {
-      legacyNodeId = rawId.replace('LIGHT_', 'POLE-');
-    }
-
-    // Determine light status and synthesize PWM / current for backend & chart
+    const deviceId = payload.device_id || payload.node_id || 'LIGHT_01';
     const lightStatus = payload.light_status !== undefined
       ? Boolean(payload.light_status)
       : (payload.led_pwm > 0);
@@ -87,16 +80,10 @@ function processAndForwardPacket(rawLine) {
       ? Boolean(payload.motion_detected)
       : Boolean(payload.motion);
 
-    // Adapted payload that matches the backend / frontend schema perfectly
-    const adaptedPayload = {
-      node_id: legacyNodeId,
-      ambient_light_adc: ldrValue,
-      motion: motionDetected,
-      led_pwm: payload.led_pwm !== undefined ? payload.led_pwm : (lightStatus ? 100 : 0),
-      current_ma: payload.current_ma !== undefined ? payload.current_ma : (lightStatus ? 142.5 : 0.0),
-      fault_code: payload.fault_code !== undefined ? payload.fault_code : 0,
-      // Also include new fields for forward-compatibility
-      device_id: rawId,
+    // Native modern telemetry payload
+    const cleanPayload = {
+      device_id: deviceId,
+      node_id: deviceId, // alias for compatibility
       light_status: lightStatus,
       ldr_value: ldrValue,
       motion_detected: motionDetected
@@ -104,11 +91,11 @@ function processAndForwardPacket(rawLine) {
 
     // 2. Publish to HiveMQ Cloud
     if (mqttClient.connected) {
-      mqttClient.publish(MQTT_TOPIC, JSON.stringify(adaptedPayload), { qos: 0 }, (err) => {
+      mqttClient.publish(MQTT_TOPIC, JSON.stringify(cleanPayload), { qos: 0 }, (err) => {
         if (err) {
           console.error(`  ❌ MQTT publish failed:`, err.message);
         } else {
-          console.log(`  MQTT TX ► ${legacyNodeId} forwarded to ${MQTT_TOPIC}`);
+          console.log(`  MQTT TX ► ${deviceId} forwarded to ${MQTT_TOPIC}`);
         }
       });
     } else {
@@ -202,9 +189,17 @@ function startMockHardwareLoop() {
   let count = 0;
   setInterval(() => {
     count++;
-    // Toggle motion periodically and compute light state
+
+    // Motion triggered every 3 ticks
     const motion = count % 3 === 0;
-    const ldr = motion ? 280 : (350 + Math.floor(Math.random() * 40));
+
+    // Simulate Day (ticks 0-5) vs Night (ticks 6-11)
+    const isDay = Math.floor(count / 6) % 2 === 0;
+    const ldr = isDay
+      ? 600 + Math.floor(Math.random() * 150)  // 600 - 750 (Day / Bright)
+      : 150 + Math.floor(Math.random() * 150); // 150 - 300 (Night / Dark)
+
+    // Street light turns on if it's dark OR if motion is detected
     const lightStatus = ldr < 500 || motion;
 
     const mockStm32Line = JSON.stringify({
