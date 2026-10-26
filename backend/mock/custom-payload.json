@@ -1,8 +1,6 @@
 {
-  "node_id": "POLE-01",
-  "ambient_light_adc": 320,
-  "motion": false,
-  "led_pwm": 20,
-  "current_ma": 29.5,
-  "fault_code": 0
+  "device_id": "LIGHT_01",
+  "light_status": false,
+  "ldr_value": 1000,
+  "motion_detected": true
 }
