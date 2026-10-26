@@ -12,7 +12,7 @@ const { ReadlineParser } = require('@serialport/parser-readline');
 //   1. Edit SERIAL_PORT in your backend/.env file (e.g. SERIAL_PORT=COM4)
 //   2. Or edit the DEFAULT_COM_PORT variable below directly
 // ============================================================================
-const DEFAULT_COM_PORT = process.env.SERIAL_PORT || 'COM3'; // <-- CHANGE PORT HERE IF NEEDED
+const DEFAULT_COM_PORT = process.env.SERIAL_PORT || 'COM3'; // CHANGE PORT IF NEEDED
 const DEFAULT_BAUD_RATE = parseInt(process.env.SERIAL_BAUD || '115200', 10);
 const MQTT_TOPIC = 'smartlight/telemetry';
 
@@ -39,7 +39,7 @@ const mqttClient = mqtt.connect(process.env.MQTT_URL, {
 });
 
 mqttClient.on('connect', () => {
-  console.log('✅ Connected to HiveMQ Cloud successfully.\n');
+  console.log('Connected to HiveMQ Cloud successfully.\n');
   if (IS_MOCK_MODE) {
     startMockHardwareLoop();
   } else {
@@ -48,7 +48,7 @@ mqttClient.on('connect', () => {
 });
 
 mqttClient.on('error', (err) => {
-  console.error('❌ HiveMQ MQTT Connection Error:', err.message);
+  console.error('HiveMQ MQTT Connection Error:', err.message);
 });
 
 // --- 2. PACKET ADAPTER (Option 1: Hardware Schema -> Backend Schema) ---
@@ -144,8 +144,8 @@ async function startSerialPort() {
         handlePortOpenError(err);
         return;
       }
-      console.log(`✅ Serial port ${DEFAULT_COM_PORT} opened successfully.`);
-      console.log(`Waiting for incoming telemetry lines from STM32...\n`);
+      console.log(`Serial port ${DEFAULT_COM_PORT} opened successfully.`);
+      console.log(`Waiting for incoming telemetry...\n`);
     });
 
     parser.on('data', (line) => {
@@ -156,7 +156,7 @@ async function startSerialPort() {
     });
 
     port.on('error', (err) => {
-      console.error(`❌ Serial Port Runtime Error:`, err.message);
+      console.error(`Serial Port Runtime Error:`, err.message);
     });
 
     port.on('close', () => {
@@ -170,11 +170,11 @@ async function startSerialPort() {
 
 // Helper: auto-detect and display available ports on connection failure
 async function handlePortOpenError(err) {
-  console.error(`\n❌ Could not open serial port '${DEFAULT_COM_PORT}': ${err.message}`);
+  console.error(`\nCould not open serial port '${DEFAULT_COM_PORT}': ${err.message}`);
 
   try {
     const availablePorts = await SerialPort.list();
-    console.log(`\n🔍 Scanning available COM ports on this PC:`);
+    console.log(`\n Scanning available COM ports on this PC:`);
     if (availablePorts.length === 0) {
       console.log(`   (No active COM ports detected. Is the STM32 plugged into USB?)`);
     } else {
@@ -182,19 +182,19 @@ async function handlePortOpenError(err) {
         const info = p.manufacturer ? `(${p.manufacturer})` : '';
         console.log(`   -> ${p.path} ${info}`);
       });
-      console.log(`\n💡 To switch port, edit SERIAL_PORT in backend/.env or backend/serial-bridge.js`);
+      console.log(`\n To switch port, edit SERIAL_PORT in backend/.env or backend/serial-bridge.js`);
     }
   } catch (listErr) {
     console.error('Failed to list serial ports:', listErr.message);
   }
 
-  console.log('\nTip: To test without hardware right now, run: npm run serial-bridge:mock\n');
+  console.log('\nTip: To test without hardware, run: npm run serial-bridge:mock\n');
 }
 
 // --- 4. MOCK HARDWARE SIMULATOR (For testing without hardware) ---
 function startMockHardwareLoop() {
   console.log(`======================================================`);
-  console.log(`🧪 MOCK HARDWARE MODE ACTIVE (--mock)`);
+  console.log(`MOCK HARDWARE MODE ACTIVE (--mock)`);
   console.log(`Simulating STM32 USB serial transmission for LIGHT_01`);
   console.log(`Forwarding adapted packets to HiveMQ: ${MQTT_TOPIC}`);
   console.log(`======================================================\n`);
