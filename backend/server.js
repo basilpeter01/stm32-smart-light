@@ -36,13 +36,12 @@ app.use(express.json());
 
 // MongoDB Schema & Model
 const telemetrySchema = new mongoose.Schema({
-  node_id: { type: String, required: true },
+  device_id: { type: String, required: true },
+  node_id: { type: String }, // compatibility alias
   timestamp: { type: Number, required: true },
-  ambient_light_adc: { type: Number, required: true },
-  motion: { type: Boolean, required: true },
-  led_pwm: { type: Number, required: true },
-  current_ma: { type: Number, required: true },
-  fault_code: { type: Number, required: true }
+  light_status: { type: Boolean, required: true },
+  ldr_value: { type: Number, required: true },
+  motion_detected: { type: Boolean, required: true }
 });
 
 const Telemetry = mongoose.model('Telemetry', telemetrySchema);
@@ -103,44 +102,57 @@ mqttClient.on('message', async (topic, message) => {
       const payload = JSON.parse(message.toString());
       const now = Date.now();
 
+      const rawId = payload.device_id || payload.node_id;
+      if (!rawId) return;
+
+      const lightStatus = Boolean(payload.light_status ?? (payload.led_pwm > 0));
+      const ldrValue = Number(payload.ldr_value ?? payload.ambient_light_adc ?? 0);
+      const motionDetected = Boolean(payload.motion_detected ?? payload.motion);
+
       const enrichedPayload = {
-        node_id: payload.node_id,
-        ambient_light_adc: payload.ambient_light_adc,
-        motion: payload.motion,
-        led_pwm: payload.led_pwm,
-        current_ma: payload.current_ma,
-        fault_code: payload.fault_code,
+        device_id: rawId,
+        node_id: rawId, // provide alias so frontend can use either
+        light_status: lightStatus,
+        ldr_value: ldrValue,
+        motion_detected: motionDetected,
         timestamp: now,
         status: 'ONLINE'
       };
 
-      latestNodesState.set(payload.node_id, enrichedPayload);
+      latestNodesState.set(rawId, enrichedPayload);
       io.emit('telemetry_update', enrichedPayload);
 
-      const lastSave = lastDbSaveTime.get(payload.node_id) || 0;
-      if (payload.fault_code !== 0 || (now - lastSave) >= 30000) {
-        await Telemetry.create(enrichedPayload);
-        lastDbSaveTime.set(payload.node_id, now);
+      const lastSave = lastDbSaveTime.get(rawId) || 0;
+      if ((now - lastSave) >= 30000) {
+        await Telemetry.create({
+          device_id: rawId,
+          node_id: rawId,
+          timestamp: now,
+          light_status: lightStatus,
+          ldr_value: ldrValue,
+          motion_detected: motionDetected
+        });
+        lastDbSaveTime.set(rawId, now);
       }
 
-      if (nodeTimers.has(payload.node_id)) {
-        clearTimeout(nodeTimers.get(payload.node_id));
+      if (nodeTimers.has(rawId)) {
+        clearTimeout(nodeTimers.get(rawId));
       }
 
       const timer = setTimeout(() => {
-        const currentState = latestNodesState.get(payload.node_id);
+        const currentState = latestNodesState.get(rawId);
         if (currentState) {
           const offlineState = {
             ...currentState,
             status: 'OFFLINE',
             timestamp: Date.now()
           };
-          latestNodesState.set(payload.node_id, offlineState);
+          latestNodesState.set(rawId, offlineState);
           io.emit('telemetry_update', offlineState);
         }
       }, OFFLINE_TIMEOUT);
 
-      nodeTimers.set(payload.node_id, timer);
+      nodeTimers.set(rawId, timer);
 
     } catch (error) {
       console.error('Error processing MQTT message:', error);
@@ -157,10 +169,12 @@ app.get('/api/nodes', (req, res) => {
 app.get('/api/nodes/:id/history', async (req, res) => {
   try {
     const nodeId = req.params.id;
-    const history = await Telemetry.find({ node_id: nodeId })
+    const history = await Telemetry.find({
+      $or: [{ device_id: nodeId }, { node_id: nodeId }]
+    })
       .sort({ timestamp: -1 })
       .limit(50)
-      .select('timestamp current_ma -_id');
+      .select('timestamp ldr_value light_status -_id');
 
     res.json(history.reverse());
   } catch (error) {
@@ -170,9 +184,13 @@ app.get('/api/nodes/:id/history', async (req, res) => {
 
 app.get('/api/alerts', async (req, res) => {
   try {
-    const alerts = await Telemetry.find({ fault_code: { $gt: 0 } })
+    // Find daytime illumination anomaly (light ON while LDR >= 500)
+    const alerts = await Telemetry.find({
+      ldr_value: { $gte: 500 },
+      light_status: true
+    })
       .sort({ timestamp: -1 })
-      .limit(100);
+      .limit(50);
     res.json(alerts);
   } catch (error) {
     res.status(500).json({ error: 'Internal server error' });
