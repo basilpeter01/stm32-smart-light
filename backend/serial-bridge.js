@@ -109,29 +109,50 @@ function processAndForwardPacket(rawLine) {
 }
 
 // --- 3. HARDWARE SERIAL PORT CONNECTION ---
+let activePort = null;
+let reconnectTimer = null;
+let isFirstConnect = true;
+
+function scheduleReconnect(delayMs = 3000) {
+  if (reconnectTimer) return;
+  reconnectTimer = setTimeout(() => {
+    reconnectTimer = null;
+    startSerialPort();
+  }, delayMs);
+}
+
 async function startSerialPort() {
-  console.log(`======================================================`);
-  console.log(`🔌 STM32 USB SERIAL BRIDGE`);
-  console.log(`Configured Port : ${DEFAULT_COM_PORT}`);
-  console.log(`Baud Rate       : ${DEFAULT_BAUD_RATE}`);
-  console.log(`MQTT Topic      : ${MQTT_TOPIC}`);
-  console.log(`======================================================\n`);
+  if (isFirstConnect) {
+    console.log(`======================================================`);
+    console.log(`🔌 STM32 USB SERIAL BRIDGE`);
+    console.log(`Configured Port : ${DEFAULT_COM_PORT}`);
+    console.log(`Baud Rate       : ${DEFAULT_BAUD_RATE}`);
+    console.log(`MQTT Topic      : ${MQTT_TOPIC}`);
+    console.log(`Auto-Reconnect  : Enabled (retries every 3s if disconnected)`);
+    console.log(`======================================================\n`);
+    isFirstConnect = false;
+  }
 
   try {
-    const port = new SerialPort({
+    if (activePort && activePort.isOpen) {
+      return;
+    }
+
+    activePort = new SerialPort({
       path: DEFAULT_COM_PORT,
       baudRate: DEFAULT_BAUD_RATE,
       autoOpen: false
     });
 
-    const parser = port.pipe(new ReadlineParser({ delimiter: '\r\n' }));
+    // Delimiter: '\n' catches both \r\n (CRLF) and \n (LF)
+    const parser = activePort.pipe(new ReadlineParser({ delimiter: '\n' }));
 
-    port.open((err) => {
+    activePort.open((err) => {
       if (err) {
         handlePortOpenError(err);
         return;
       }
-      console.log(`Serial port ${DEFAULT_COM_PORT} opened successfully.`);
+      console.log(`✅ Serial port ${DEFAULT_COM_PORT} opened successfully.`);
       console.log(`Waiting for incoming telemetry...\n`);
     });
 
@@ -142,12 +163,14 @@ async function startSerialPort() {
       }
     });
 
-    port.on('error', (err) => {
-      console.error(`Serial Port Runtime Error:`, err.message);
+    activePort.on('error', (err) => {
+      console.error(`Serial Port Error:`, err.message);
     });
 
-    port.on('close', () => {
-      console.warn(`⚠️ Serial port ${DEFAULT_COM_PORT} closed.`);
+    activePort.on('close', () => {
+      console.warn(`⚠️ Serial port ${DEFAULT_COM_PORT} disconnected. Reconnecting in 3 seconds...`);
+      activePort = null;
+      scheduleReconnect(3000);
     });
 
   } catch (err) {
@@ -155,27 +178,22 @@ async function startSerialPort() {
   }
 }
 
-// Helper: auto-detect and display available ports on connection failure
+// Helper: auto-detect and display available ports on connection failure, then retry
 async function handlePortOpenError(err) {
-  console.error(`\nCould not open serial port '${DEFAULT_COM_PORT}': ${err.message}`);
+  console.error(`Could not open '${DEFAULT_COM_PORT}': ${err.message}. Retrying in 3s...`);
 
   try {
     const availablePorts = await SerialPort.list();
-    console.log(`\n Scanning available COM ports on this PC:`);
-    if (availablePorts.length === 0) {
-      console.log(`   (No active COM ports detected. Is the STM32 plugged into USB?)`);
-    } else {
-      availablePorts.forEach((p) => {
-        const info = p.manufacturer ? `(${p.manufacturer})` : '';
-        console.log(`   -> ${p.path} ${info}`);
-      });
-      console.log(`\n To switch port, edit SERIAL_PORT in backend/.env or backend/serial-bridge.js`);
+    if (availablePorts.length > 0) {
+      const portsList = availablePorts.map(p => p.path).join(', ');
+      console.log(`   (Detected active COM ports: ${portsList})`);
     }
   } catch (listErr) {
-    console.error('Failed to list serial ports:', listErr.message);
+    // ignore listing error
   }
 
-  console.log('\nTip: To test without hardware, run: npm run serial-bridge:mock\n');
+  activePort = null;
+  scheduleReconnect(3000);
 }
 
 // --- 4. MOCK HARDWARE SIMULATOR (For testing without hardware) ---
