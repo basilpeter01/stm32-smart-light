@@ -217,8 +217,10 @@ function startMockHardwareLoop() {
       ? 600 + Math.floor(Math.random() * 150)  // 600 - 750 (Day / Bright)
       : 150 + Math.floor(Math.random() * 150); // 150 - 300 (Night / Dark)
 
-    // Street light turns on if it's dark OR if motion is detected
-    const lightStatus = ldr < 500 || motion;
+    // Daytime (LDR >= 500): Light is ALWAYS OFF.
+    // Nighttime (LDR < 500): Light turns ON when motion is detected.
+    const isNight = ldr < 500;
+    const lightStatus = isNight && motion;
 
     const mockStm32Line = JSON.stringify({
       device_id: 'LIGHT_01',
