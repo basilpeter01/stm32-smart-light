@@ -6,17 +6,16 @@ const { SerialPort } = require('serialport');
 const { ReadlineParser } = require('@serialport/parser-readline');
 
 // ============================================================================
-// ⚠️ HARDWARE SERIAL CONFIGURATION
+// HARDWARE SERIAL CONFIGURATION
 // ============================================================================
-// If your STM32 uses a different COM port, either:
-//   1. Edit SERIAL_PORT in your backend/.env file (e.g. SERIAL_PORT=COM4)
-//   2. Or edit the DEFAULT_COM_PORT variable below directly
+// If different COM port:
+//   Edit SERIAL_PORT in your backend/.env file
 // ============================================================================
 const DEFAULT_COM_PORT = process.env.SERIAL_PORT || 'COM3'; // CHANGE PORT IF NEEDED
 const DEFAULT_BAUD_RATE = parseInt(process.env.SERIAL_BAUD || '115200', 10);
 const MQTT_TOPIC = 'smartlight/telemetry';
 
-// Check if running in mock/simulation mode (no physical USB connected)
+// Check if running in mock/simulation mode
 const IS_MOCK_MODE = process.argv.includes('--mock') || process.argv.includes('-m');
 
 // Validate MQTT credentials
@@ -51,11 +50,11 @@ mqttClient.on('error', (err) => {
   console.error('HiveMQ MQTT Connection Error:', err.message);
 });
 
-// --- 2. PACKET ADAPTER (Option 1: Hardware Schema -> Backend Schema) ---
+// --- 2. PACKET ADAPTER ---
 function processAndForwardPacket(rawLine) {
   const timestamp = new Date().toLocaleTimeString([], { hour12: false });
 
-  // 1. Tera Term Style Real-time Terminal Display
+  // 1. Terminal Display
   console.log(`[${timestamp}] RAW RX ◄ ${rawLine}`);
 
   try {
@@ -80,7 +79,7 @@ function processAndForwardPacket(rawLine) {
       ? Boolean(payload.motion_detected)
       : Boolean(payload.motion);
 
-    // Native modern telemetry payload
+    // Payload
     const cleanPayload = {
       device_id: deviceId,
       node_id: deviceId, // alias for compatibility
@@ -103,7 +102,7 @@ function processAndForwardPacket(rawLine) {
     }
 
   } catch (parseError) {
-    // If STM32 sends non-JSON text (e.g. boot messages or debug strings)
+    // If STM32 sends non-JSON text
     console.log(`  [LOG] Non-JSON line: ${rawLine}`);
   }
 }
@@ -152,7 +151,7 @@ async function startSerialPort() {
         handlePortOpenError(err);
         return;
       }
-      console.log(`✅ Serial port ${DEFAULT_COM_PORT} opened successfully.`);
+      console.log(`Serial port ${DEFAULT_COM_PORT} opened successfully.`);
       console.log(`Waiting for incoming telemetry...\n`);
     });
 
@@ -196,7 +195,7 @@ async function handlePortOpenError(err) {
   scheduleReconnect(3000);
 }
 
-// --- 4. MOCK HARDWARE SIMULATOR (For testing without hardware) ---
+// --- 4. MOCK HARDWARE SIMULATOR ---
 function startMockHardwareLoop() {
   console.log(`======================================================`);
   console.log(`MOCK HARDWARE MODE ACTIVE (--mock)`);
