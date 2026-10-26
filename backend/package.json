@@ -5,8 +5,10 @@
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
+    "serial-bridge": "node serial-bridge.js",
+    "serial-bridge:mock": "node serial-bridge.js --mock",
     "mock": "node mock/mock-generator.js",
-    "publish-custom": "node mock/custom-publisher.js"
+    "publish-custom": "node mock/custom-generator.js"
   },
   "dependencies": {
     "cors": "^2.8.6",
