@@ -12,19 +12,18 @@ import { initSocket, disconnectSocket } from './services/socket';
 import { DEFAULT_POLES, MAX_HISTORY_POINTS } from './constants';
 
 const INITIAL_POLES = DEFAULT_POLES.map((id) => ({
+  device_id: id,
   node_id: id,
   status: 'OFFLINE',
-  ambient_light_adc: 0,
-  motion: false,
-  led_pwm: 0,
-  current_ma: 0,
-  fault_code: 0,
+  light_status: false,
+  ldr_value: 0,
+  motion_detected: false,
   timestamp: null
 }));
 
 export default function App() {
   const [nodes, setNodes] = useState(INITIAL_POLES);
-  const [selectedNodeId, setSelectedNodeId] = useState('POLE-01');
+  const [selectedNodeId, setSelectedNodeId] = useState('LIGHT_01');
   const [histories, setHistories] = useState({});
   const [logs, setLogs] = useState([]);
   const [wsConnected, setWsConnected] = useState(false);
@@ -50,9 +49,10 @@ export default function App() {
     const serverNodes = await fetchNodes();
     if (serverNodes && Array.isArray(serverNodes) && serverNodes.length > 0) {
       setNodes((prev) => {
-        const map = new Map(prev.map((n) => [n.node_id, n]));
+        const map = new Map(prev.map((n) => [n.device_id || n.node_id, n]));
         serverNodes.forEach((sn) => {
-          map.set(sn.node_id, { ...map.get(sn.node_id), ...sn, status: sn.status || 'ONLINE' });
+          const id = sn.device_id || sn.node_id;
+          map.set(id, { ...map.get(id), ...sn, device_id: id, node_id: id, status: sn.status || 'ONLINE' });
         });
         return Array.from(map.values());
       });
@@ -62,11 +62,12 @@ export default function App() {
 
   // Handle incoming live telemetry packet over Socket.io
   const handleTelemetryUpdate = useCallback((packet) => {
-    if (!packet || !packet.node_id) return;
+    const id = packet.device_id || packet.node_id;
+    if (!packet || !id) return;
 
-    // Auto-focus first active transmitting pole if user hasn't picked one
-    if (!hasUserSelectedRef.current && selectedNodeIdRef.current === 'POLE-01' && packet.node_id !== 'POLE-01') {
-      setSelectedNodeId(packet.node_id);
+    // Auto-focus first active transmitting pole if user hasn't manually picked one
+    if (!hasUserSelectedRef.current && selectedNodeIdRef.current === 'LIGHT_01' && id !== 'LIGHT_01') {
+      setSelectedNodeId(id);
       hasUserSelectedRef.current = true;
     }
 
@@ -76,42 +77,46 @@ export default function App() {
       ...prev.slice(-99),
       {
         time: timeStr,
-        node_id: packet.node_id,
+        device_id: id,
+        node_id: id,
         payload: {
-          ambient_light_adc: packet.ambient_light_adc,
-          motion: packet.motion,
-          led_pwm: packet.led_pwm,
-          current_ma: packet.current_ma,
-          fault_code: packet.fault_code
+          device_id: id,
+          light_status: Boolean(packet.light_status),
+          ldr_value: Number(packet.ldr_value ?? packet.ambient_light_adc ?? 0),
+          motion_detected: Boolean(packet.motion_detected ?? packet.motion)
         }
       }
     ]);
 
     // 2. Update pole in nodes list
     setNodes((prev) => {
-      const index = prev.findIndex((n) => n.node_id === packet.node_id);
+      const index = prev.findIndex((n) => (n.device_id || n.node_id) === id);
+      const updatedNode = {
+        device_id: id,
+        node_id: id,
+        ...packet,
+        status: packet.status || 'ONLINE'
+      };
+
       if (index >= 0) {
         const updated = [...prev];
-        updated[index] = {
-          ...updated[index],
-          ...packet,
-          status: packet.status || 'ONLINE'
-        };
+        updated[index] = { ...updated[index], ...updatedNode };
         return updated;
       }
-      return [...prev, { ...packet, status: packet.status || 'ONLINE' }];
+      return [...prev, updatedNode];
     });
 
     // 3. Append to that node's history buffer (sliding window of max 30 readings)
     setHistories((prev) => {
-      const existing = prev[packet.node_id] || [];
+      const existing = prev[id] || [];
       const newPoint = {
         timestamp: packet.timestamp || Date.now(),
-        current_ma: Number(packet.current_ma) || 0
+        ldr_value: Number(packet.ldr_value ?? packet.ambient_light_adc) || 0,
+        light_status: Boolean(packet.light_status)
       };
       return {
         ...prev,
-        [packet.node_id]: [...existing, newPoint].slice(-MAX_HISTORY_POINTS)
+        [id]: [...existing, newPoint].slice(-MAX_HISTORY_POINTS)
       };
     });
 
@@ -121,7 +126,7 @@ export default function App() {
   // Initialize Socket.io connection on mount
   useEffect(() => {
     loadInitialNodes();
-    loadHistoryForNode('POLE-01');
+    loadHistoryForNode('LIGHT_01');
 
     initSocket({
       onConnect: () => {
@@ -145,13 +150,12 @@ export default function App() {
   const handleSelectNode = (nodeId) => {
     setSelectedNodeId(nodeId);
     hasUserSelectedRef.current = true;
-    // If we don't have cached history for this node yet, fetch from backend
     if (!histories[nodeId] || histories[nodeId].length === 0) {
       loadHistoryForNode(nodeId);
     }
   };
 
-  const selectedNode = nodes.find((n) => n.node_id === selectedNodeId) || nodes[0];
+  const selectedNode = nodes.find((n) => (n.device_id || n.node_id) === selectedNodeId) || nodes[0];
   const activeHistory = histories[selectedNodeId] || [];
 
   return (
@@ -178,13 +182,8 @@ export default function App() {
             {/* Selected Pole Header */}
             <NodeDetailHeader node={selectedNode} />
 
-            {/* Fault Alert Banner (or Offline Indicator) */}
-            <FaultBanner
-              node={selectedNode}
-              faultCode={selectedNode?.fault_code || 0}
-              ledPwm={selectedNode?.led_pwm || 0}
-              currentMa={selectedNode?.current_ma || 0}
-            />
+            {/* Informational Alert Banner (or Offline Indicator) */}
+            <FaultBanner node={selectedNode} />
 
             {/* 3 Sensor Telemetry Cards */}
             <SensorCards node={selectedNode} />
