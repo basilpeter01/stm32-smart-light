@@ -58,7 +58,8 @@ function processAndForwardPacket(rawLine) {
   console.log(`[${timestamp}] RAW RX ◄ ${rawLine}`);
 
   try {
-    const payload = JSON.parse(rawLine);
+    const sanitized = rawLine.replace(/,\s*([}\]])/g, '$1');
+    const payload = JSON.parse(sanitized);
 
     // Validate minimum required fields
     if (!payload.device_id && !payload.node_id) {
@@ -92,7 +93,7 @@ function processAndForwardPacket(rawLine) {
     if (mqttClient.connected) {
       mqttClient.publish(MQTT_TOPIC, JSON.stringify(cleanPayload), { qos: 0 }, (err) => {
         if (err) {
-          console.error(`  ❌ MQTT publish failed:`, err.message);
+          console.error(`MQTT publish failed:`, err.message);
         } else {
           console.log(`  MQTT TX ► ${deviceId} forwarded to ${MQTT_TOPIC}`);
         }
@@ -155,10 +156,32 @@ async function startSerialPort() {
       console.log(`Waiting for incoming telemetry...\n`);
     });
 
+    let jsonBuffer = '';
+
     parser.on('data', (line) => {
       const trimmed = line.trim();
-      if (trimmed) {
-        processAndForwardPacket(trimmed);
+      if (!trimmed) return;
+
+      // If we see an opening '{', start a new JSON buffer
+      if (trimmed.includes('{')) {
+        jsonBuffer = trimmed.substring(trimmed.indexOf('{'));
+      } else if (jsonBuffer.length > 0) {
+        // Continue accumulating lines inside the JSON object
+        jsonBuffer += ' ' + trimmed;
+      } else {
+        // Normal debug text printed by STM32 (e.g. "PIR Sensor Ready!", separator lines)
+        console.log(`[${new Date().toLocaleTimeString([], { hour12: false })}] [STM32 LOG] ${trimmed}`);
+        return;
+      }
+
+      // If the buffer now contains a closing '}', we have a complete JSON packet!
+      if (jsonBuffer.includes('}')) {
+        const fullJsonStr = jsonBuffer.substring(0, jsonBuffer.lastIndexOf('}') + 1);
+        jsonBuffer = ''; // Reset buffer for next packet
+        processAndForwardPacket(fullJsonStr);
+      } else if (jsonBuffer.length > 1000) {
+        // Prevent buffer overflow if malformed input arrives
+        jsonBuffer = '';
       }
     });
 
@@ -213,12 +236,12 @@ function startMockHardwareLoop() {
     // Simulate Day (ticks 0-5) vs Night (ticks 6-11)
     const isDay = Math.floor(count / 6) % 2 === 0;
     const ldr = isDay
-      ? 600 + Math.floor(Math.random() * 150)  // 600 - 750 (Day / Bright)
-      : 150 + Math.floor(Math.random() * 150); // 150 - 300 (Night / Dark)
+      ? 1900 + Math.floor(Math.random() * 150)  // 1900 - 2050 (Daylight)
+      : 2700 + Math.floor(Math.random() * 150); // 2700 - 2850 (Darkness)
 
-    // Daytime (LDR >= 500): Light is ALWAYS OFF.
-    // Nighttime (LDR < 500): Light turns ON when motion is detected.
-    const isNight = ldr < 500;
+    // Daytime (LDR < 2500): Light is ALWAYS OFF.
+    // Nighttime (LDR >= 2500): Light turns ON when motion is detected.
+    const isNight = ldr >= 2500;
     const lightStatus = isNight && motion;
 
     const mockStm32Line = JSON.stringify({
