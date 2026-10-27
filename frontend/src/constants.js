@@ -1,10 +1,11 @@
 export const DEFAULT_POLES = [
-  'POLE-01',
-  'POLE-02',
-  'POLE-03',
-  'POLE-04',
-  'POLE-05'
+  'LIGHT_01',
+  'LIGHT_02',
+  'LIGHT_03',
+  'LIGHT_04',
+  'LIGHT_05'
 ];
 
 export const MAX_HISTORY_POINTS = 30;
-export const OVERCURRENT_CEILING_MA = 160.0;
+export const LDR_DAY_THRESHOLD = 2500;
+export const LDR_MAX_SCALE = 4095;

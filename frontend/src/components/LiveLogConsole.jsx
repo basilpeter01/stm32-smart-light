@@ -77,7 +77,7 @@ export default function LiveLogConsole({ logs = [], onClearLogs }) {
               <div key={index} className="flex items-start gap-2">
                 <span className="text-slate-500 select-none">[{log.time}]</span>
                 <span className="text-emerald-400 font-semibold select-none">
-                  {log.node_id}:
+                  {log.device_id || log.node_id}:
                 </span>
                 <span className="text-slate-300 break-all">
                   {JSON.stringify(log.payload)}

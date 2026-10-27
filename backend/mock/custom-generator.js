@@ -56,7 +56,7 @@ client.on('connect', () => {
     if (err) {
       console.error('Failed to publish message:', err);
     } else {
-      console.log(`Successfully published message for ${payloadObj.node_id || 'unknown node'}`);
+      console.log(`Successfully published message for ${payloadObj.device_id || payloadObj.node_id || 'unknown node'}`);
     }
     // Disconnect after publishing
     client.end();

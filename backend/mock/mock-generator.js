@@ -22,42 +22,20 @@ const client = mqtt.connect(MQTT_URL, {
   rejectUnauthorized: true
 });
 
-const NODES = ['POLE-02', 'POLE-03', 'POLE-04', 'POLE-05'];
+const NODES = ['LIGHT_02', 'LIGHT_03', 'LIGHT_04', 'LIGHT_05'];
 
 function generateMockData(nodeId) {
   const isNight = new Date().getHours() >= 18 || new Date().getHours() < 6;
-  const motion = Math.random() > 0.8;
-  const faultRand = Math.random();
-
-  let fault_code = 0;
-  if (faultRand > 0.98) {
-    fault_code = 1;
-  } else if (faultRand > 0.95) {
-    fault_code = 2;
-  }
-
-  let led_pwm = 0;
-  let current_ma = 0;
-
-  if (isNight) {
-    led_pwm = motion ? 100 : 20;
-    current_ma = motion ? 142.5 + (Math.random() * 5 - 2.5) : 28.5 + (Math.random() * 2 - 1);
-  } else {
-    led_pwm = 0;
-    current_ma = 0.1 + Math.random() * 0.2;
-  }
-
-  if (fault_code === 1) {
-    current_ma = 0;
-  }
+  const motion = Math.random() > 0.7;
+  // Circuit LDR values: Day < 2500 (e.g. 1900-2100), Night >= 2500 (e.g. 2700-3000)
+  const ldr_value = isNight ? 2750 + Math.floor(Math.random() * 200) : 1900 + Math.floor(Math.random() * 200);
+  const light_status = isNight ? (motion || Math.random() > 0.3) : false;
 
   return {
-    node_id: nodeId,
-    ambient_light_adc: isNight ? 100 + Math.floor(Math.random() * 50) : 3400 + Math.floor(Math.random() * 200),
-    motion: isNight ? motion : false,
-    led_pwm: led_pwm,
-    current_ma: parseFloat(current_ma.toFixed(2)),
-    fault_code: fault_code
+    device_id: nodeId,
+    light_status: light_status,
+    ldr_value: ldr_value,
+    motion_detected: motion
   };
 }
 
