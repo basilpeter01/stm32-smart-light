@@ -184,9 +184,9 @@ app.get('/api/nodes/:id/history', async (req, res) => {
 
 app.get('/api/alerts', async (req, res) => {
   try {
-    // Find daytime illumination anomaly (light ON while LDR >= 500)
+    // Find daytime illumination anomaly (light ON while daylight: ldr_value < 2500)
     const alerts = await Telemetry.find({
-      ldr_value: { $gte: 500 },
+      ldr_value: { $lt: 2500 },
       light_status: true
     })
       .sort({ timestamp: -1 })
