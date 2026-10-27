@@ -7,5 +7,5 @@ export const DEFAULT_POLES = [
 ];
 
 export const MAX_HISTORY_POINTS = 30;
-export const LDR_DAY_THRESHOLD = 500;
-export const LDR_MAX_SCALE = 1024;
+export const LDR_DAY_THRESHOLD = 2500;
+export const LDR_MAX_SCALE = 4095;
