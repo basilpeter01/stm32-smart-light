@@ -27,8 +27,8 @@ const NODES = ['LIGHT_02', 'LIGHT_03', 'LIGHT_04', 'LIGHT_05'];
 function generateMockData(nodeId) {
   const isNight = new Date().getHours() >= 18 || new Date().getHours() < 6;
   const motion = Math.random() > 0.7;
-  // Realistic LDR values: Night < 500, Day >= 500
-  const ldr_value = isNight ? 180 + Math.floor(Math.random() * 90) : 620 + Math.floor(Math.random() * 200);
+  // Circuit LDR values: Day < 2500 (e.g. 1900-2100), Night >= 2500 (e.g. 2700-3000)
+  const ldr_value = isNight ? 2750 + Math.floor(Math.random() * 200) : 1900 + Math.floor(Math.random() * 200);
   const light_status = isNight ? (motion || Math.random() > 0.3) : false;
 
   return {
