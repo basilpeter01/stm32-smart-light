@@ -7,7 +7,7 @@ export default function SensorCards({ node }) {
 
   const isOffline = node.status === 'OFFLINE' || !node.timestamp;
   const ldrVal = Number(node.ldr_value ?? node.ambient_light_adc) || 0;
-  const isNight = ldrVal < LDR_DAY_THRESHOLD;
+  const isNight = ldrVal >= LDR_DAY_THRESHOLD;
   const motionActive = Boolean(node.motion_detected ?? node.motion);
   const isLightOn = Boolean(node.light_status ?? (node.led_pwm > 0));
 
