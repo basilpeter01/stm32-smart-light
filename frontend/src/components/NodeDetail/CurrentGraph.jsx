@@ -15,7 +15,7 @@ import { LDR_DAY_THRESHOLD, LDR_MAX_SCALE } from '../../constants';
 function CustomTooltip({ active, payload, label }) {
   if (active && payload && payload.length) {
     const ldrVal = payload[0].value;
-    const isNight = ldrVal < LDR_DAY_THRESHOLD;
+    const isNight = ldrVal >= LDR_DAY_THRESHOLD;
 
     return (
       <div className="bg-slate-900 border border-slate-700 px-3 py-2 rounded-lg shadow-xl font-mono text-xs">
@@ -27,7 +27,7 @@ function CustomTooltip({ active, payload, label }) {
           </span>
         </div>
         <div className={`text-[10px] mt-1 font-semibold ${isNight ? 'text-blue-300' : 'text-amber-300'}`}>
-          {isNight ? 'Night Condition (<500)' : 'Day Condition (>=500)'}
+          {isNight ? 'Night Condition (>=2500)' : 'Day Condition (<2500)'}
         </div>
       </div>
     );
@@ -37,7 +37,7 @@ function CustomTooltip({ active, payload, label }) {
 
 export default function CurrentGraph({ historyData = [], currentNode }) {
   const liveLdr = currentNode ? Number(currentNode.ldr_value ?? currentNode.ambient_light_adc) || 0 : 0;
-  const isNight = liveLdr < LDR_DAY_THRESHOLD;
+  const isNight = liveLdr >= LDR_DAY_THRESHOLD;
 
   // Format data for Recharts (last 30 readings)
   const chartData = historyData.slice(-30).map((d, index) => {
@@ -66,12 +66,12 @@ export default function CurrentGraph({ historyData = [], currentNode }) {
           <div className="flex items-center gap-1.5">
             {isNight ? <Moon className="w-3.5 h-3.5 text-blue-400" /> : <Sun className="w-3.5 h-3.5 text-amber-400" />}
             <span className="text-slate-400">{currentNode?.status === 'ONLINE' ? 'Live LDR: ' : 'Last LDR: '}</span>
-            <span className={currentNode?.status === 'ONLINE' ? 'text-sky-400 font-bold' : 'text-slate-400 font-semibold'}>
+            <span className={currentNode?.status === 'ONLINE' ? (isNight ? 'text-blue-400 font-bold' : 'text-amber-400 font-bold') : 'text-slate-400 font-semibold'}>
               {currentNode?.timestamp ? `${liveLdr} adc` : '--'}
             </span>
           </div>
           <div>
-            <span className="text-slate-400">Day Threshold: </span>
+            <span className="text-slate-400">Threshold: </span>
             <span className="text-amber-400 font-bold">{LDR_DAY_THRESHOLD} adc</span>
           </div>
         </div>
@@ -102,7 +102,7 @@ export default function CurrentGraph({ historyData = [], currentNode }) {
                 tick={{ fill: '#94a3b8', fontSize: 10, fontFamily: 'monospace' }}
                 tickLine={{ stroke: '#475569' }}
                 unit=" adc"
-                ticks={[0, 250, 500, 750, 1000]}
+                ticks={[0, 1000, 2000, 2500, 3000, 4000]}
               />
 
               <Tooltip content={<CustomTooltip />} />
@@ -112,7 +112,7 @@ export default function CurrentGraph({ historyData = [], currentNode }) {
                 stroke="#f59e0b"
                 strokeDasharray="4 4"
                 label={{
-                  value: '500 Day Mode Threshold',
+                  value: '2500 Night Threshold',
                   fill: '#f59e0b',
                   position: 'top',
                   fontSize: 10,
