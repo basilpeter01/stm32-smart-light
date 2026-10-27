@@ -11,7 +11,7 @@ export default function OverviewMetrics({ nodes = [] }) {
 
   const totalLdr = onlineNodes.reduce((sum, n) => sum + (Number(n.ldr_value) || 0), 0);
   const avgLdr = onlineNodes.length > 0 ? totalLdr / onlineNodes.length : 0;
-  const isNightFleet = avgLdr < LDR_DAY_THRESHOLD;
+  const isNightFleet = avgLdr >= LDR_DAY_THRESHOLD;
 
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
@@ -72,7 +72,7 @@ export default function OverviewMetrics({ nodes = [] }) {
           <span className="text-xs text-slate-400 font-normal ml-1">adc</span>
         </div>
         <div className="text-xs text-slate-400 mt-1">
-          {onlineNodes.length === 0 ? 'Awaiting telemetry' : isNightFleet ? 'Night Condition (<500)' : 'Day Condition (>=500)'}
+          {onlineNodes.length === 0 ? 'Awaiting telemetry' : isNightFleet ? 'Night Condition (>=2500)' : 'Day Condition (<2500)'}
         </div>
       </div>
     </div>
