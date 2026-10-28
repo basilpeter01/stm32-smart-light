@@ -1,10 +1,10 @@
 # Smart Street Light Monitoring System
 
-An automated street light telemetry and control system using an STM32 microcontroller to regulate lighting based on ambient conditions and stream sensor telemetry to a centralized web dashboard over MQTT.
+An STM32-based IoT prototype that reads ambient light and motion sensors to control a street light, then streams the sensor readings to a Node.js backend and a React dashboard over MQTT.
 
 ## Project Overview
 
-This project was developed as an embedded systems and IoT prototype to reduce unnecessary power consumption in municipal street lighting. The system monitors ambient daylight and pedestrian motion locally at each pole to switch between day shutoff and night illumination, while packaging environmental readings into JSON telemetry packets. These records are sent over a secure MQTT broker to a Node.js backend and a React dashboard for real-time fleet observation and historical logging.
+This is a course project on Microcontrollers using stm32 nucleo microcontroller and stm32CubeIDE. The STM32 Nucleo reads an LDR and a PIR sensor, decides whether to turn a connected LED on or off, and sends a small JSON packet over USB serial to a PC. A Node.js script running on that PC picks up the packet and forwards it to a HiveMQ Cloud MQTT broker over TLS. A second Node.js server subscribes to the same broker, persists readings to MongoDB Atlas, and pushes live updates to a React dashboard over Socket.io.
 
 ## Features
 
