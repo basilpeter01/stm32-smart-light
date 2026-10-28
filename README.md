@@ -38,6 +38,8 @@ Detailed wiring information and visual diagrams are provided in the [`hardware/`
 
 ### Pin Connections
 
+> For full connection details, alternate functions, and breadboard hookup notes, refer to the [Pinout Guide](hardware/pinout.md) and [Wiring Diagram](hardware/wiring-diagram.png).
+
 | Signal | STM32 Pin | Notes |
 | :--- | :--- | :--- |
 | LDR voltage divider output | PA0 (ADC1_IN0) | 12-bit analog input |
@@ -72,7 +74,7 @@ cd stm32-smart-light
 
 ### 2. Flash the STM32
 
-1. Wire the circuit according to the pin connection table above.
+1. Wire the circuit according to the [pinout guide](hardware/pinout.md) and [wiring diagram](hardware/wiring-diagram.png).
 2. Connect the Nucleo board to your PC via USB.
 3. Open the firmware project in STM32CubeIDE and flash it to the board.
 4. Note the COM port the Nucleo appears on (e.g. `COM3` on Windows, `/dev/ttyACM0` on Linux).
@@ -130,7 +132,7 @@ cd stm32-smart-light
    npm run dev
    ```
 
-4. Open `http://localhost:5173` in your browser.
+4. Open `http://localhost:5173` in your browser to view the [live dashboard](assets/dashboard-ui.png).
 
 ### 5. Testing Without Hardware
 
