@@ -8,14 +8,13 @@ This project was developed as an embedded systems and IoT prototype to reduce un
 
 ## Features
 
-- **Autonomous Multi-Stage Dimming:** Automatically switches between daytime off (0% PWM), nighttime idle standby (20% PWM), and active motion illumination (100% PWM).
-- **Local Electrical Fault Detection:** Continuously compares commanded PWM duty cycle with measured circuit current to detect open-circuit bulb failures and overcurrent conditions.
-- **Event-Driven and Periodic Telemetry:** Transmits immediate uplink packets upon motion triggers, day/night transitions, and fault events, alongside a periodic 15–30 second heartbeat.
-- **TLS-Encrypted MQTT Communication:** Communicates with an authenticated cloud MQTT broker over port 8883 using TLS encryption.
-- **Heartbeat Watchdog & Offline Marking:** The backend tracks active node timestamps and marks any pole as offline if no telemetry is received within 120 seconds.
-- **Database Write Throttling:** Persists telemetry data to MongoDB Atlas on a 30-second interval during steady operation while immediately recording all fault events.
-- **Live Monitoring Dashboard:** A React web interface displaying fleet status metrics, per-node sensor telemetry, dynamic fault banners, an oscilloscope-style current graph, and a raw packet event log.
-- **Node Simulation Suite:** Includes standalone scripts to simulate multiple virtual poles with realistic sensor variations and inject custom test payloads.
+- **Autonomous Day/Night Switching:** Evaluates analog LDR readings against a defined threshold (ADC value 2500) to keep lights off during daylight hours and activate illumination at dusk.
+- **Motion-Triggered Lighting:** Reads a digital PIR sensor input to illuminate the lamp immediately upon detecting pedestrian or vehicle presence during night hours.
+- **TLS-Encrypted MQTT Transport:** Transmits serialized telemetry over port 8883 using MQTTS to a private HiveMQ Cloud broker.
+- **Real-Time Web Dashboard:** Displays node operational status, current light state, motion triggers, and an LDR history chart using React and WebSockets (Socket.io).
+- **Node Heartbeat Watchdog:** Automatically flags a node as `OFFLINE` if no packet is received within a 120-second timeout window.
+- **Database Write Throttling:** Batches steady-state telemetry to MongoDB Atlas at 30-second intervals per node to prevent excessive database writes while preserving recent history.
+- **Multi-Node Fleet Simulator:** Provides a test script (`mock-generator.js`) to simulate telemetry from multiple virtual poles (`LIGHT_02` through `LIGHT_05`) for system verification without physical hardware.
 
 ## Hardware / Tech Stack
 
