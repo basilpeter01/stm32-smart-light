@@ -101,22 +101,32 @@ cd stm32-smart-light
    npm start
    ```
 
-### 3. Frontend Dashboard Setup
+5. In a separate terminal, start the USB serial bridge (reads from the Nucleo and publishes to HiveMQ):
+   ```bash
+   npm run serial-bridge
+   ```
 
-1. In a separate terminal, navigate to the frontend directory and install dependencies:
+### 4. Frontend
+
+1. Navigate to `frontend/` and install dependencies:
    ```bash
    cd frontend
    npm install
    ```
 
-2. Start the Vite development server:
+2. If your backend is not running on `localhost:5000`, create a `.env` file in `frontend/`:
+   ```env
+   VITE_BACKEND_URL=http://localhost:5000
+   ```
+
+3. Start the dev server:
    ```bash
    npm run dev
    ```
 
-3. Open `http://localhost:5173` in browser.
+4. Open `http://localhost:5173` in your browser.
 
-### 4. Running the Simulation / Testing
+### 5. Testing Without Hardware
 
 If you do not have the physical hardware connected, you can run the mock simulation scripts from the `backend/` directory:
 
