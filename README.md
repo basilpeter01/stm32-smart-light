@@ -176,12 +176,47 @@ npm run publish-custom
   [ React Dashboard (Vite, port 5173) ]
 ```
 
-1. **Edge Evaluation Loop:** The STM32 reads the LDR voltage divider on an analog pin. If the ADC reading is below 800 (night mode), it sets the LED to a 20% standby duty cycle. When the PIR sensor detects motion, it immediately raises the duty cycle to 100%. If ambient light is above 800 (day mode), the LED is forced to 0%.
-2. **Fault Checking:** The STM32 reads current via the ACS712. If PWM is commanded above 0% but current measures 0 mA, it flags an open-circuit failure (`fault_code = 1`). If current exceeds 160 mA, it flags an overcurrent condition (`fault_code = 2`).
-3. **Serial Transmission:** The STM32 formats this state into a compact JSON string and transmits it over USART to the ESP-01 module.
-4. **Cloud Uplink:** The ESP-01 acts as a transparent network modem, publishing the JSON payload over an authenticated TLS socket to the HiveMQ Cloud broker under the topic `smartlight/telemetry`.
-5. **Ingestion & Distribution:** The Node.js backend receives the packet, attaches a server timestamp and `ONLINE` status, resets the 120-second watchdog timer for that node, and immediately emits the update via Socket.io to connected web clients.
-6. **Data Storage:** Data is stored in MongoDB Atlas on an interval of once every 30 seconds per node during standard operation, or immediately upon a non-zero fault code.
+### Telemetry Packet
+
+The STM32 sends a line like this over serial. The serial bridge normalises field names and forwards it as-is:
+
+```json
+{
+  "device_id": "LIGHT_01",
+  "light_status": true,
+  "ldr_value": 2840,
+  "motion_detected": true
+}
+```
+
+The backend adds `timestamp` and `status` before emitting to the dashboard:
+
+```json
+{
+  "device_id": "LIGHT_01",
+  "node_id": "LIGHT_01",
+  "light_status": true,
+  "ldr_value": 2840,
+  "motion_detected": true,
+  "timestamp": 1726748231000,
+  "status": "ONLINE"
+}
+```
+
+### Decision Logic on the STM32
+
+1. Read the LDR ADC value continuously.
+2. If `ldr_value < 2500` → daytime → LED off regardless of motion.
+3. If `ldr_value >= 2500` → nighttime → LED on if PIR detects motion, off otherwise.
+4. Serialize the current state to JSON and send over USART at 115200 baud.
+
+### REST API
+
+| Endpoint | What it returns |
+| :--- | :--- |
+| `GET /api/nodes` | Latest known state of all registered nodes (from in-memory map) |
+| `GET /api/nodes/:id/history` | Last 50 `{timestamp, ldr_value, light_status}` records from MongoDB for a node |
+| `GET /api/alerts` | Records where `light_status` was `true` and `ldr_value < 2500` (light on during daytime) |
 
 ## Known Limitations & Future Improvements
 
