@@ -47,14 +47,15 @@ This is a course project on Microcontrollers using stm32 nucleo microcontroller 
 - **Database:** MongoDB Atlas (M0 Free Tier)
 - **Frontend:** React 18, Vite, Tailwind CSS, Recharts, Lucide React, Socket.io Client
 
-## Getting Started / Setup Instructions
+## Setup
 
-### Prerequisites
+### What You Need
 
-- Node.js (v18.x or newer) and npm installed.
-- Git installed.
-- Free accounts on [HiveMQ Cloud](https://www.hivemq.com/cloud/) and [MongoDB Atlas](https://www.mongodb.com/cloud/atlas).
-- STM32CubeIDE and Arduino IDE (if flashing physical microcontroller firmware).
+- STM32 Nucleo-F411RE or F446RE board, LDR, 10 kΩ resistor, HC-SR501 PIR sensor, a blue LED, 220 Ω resistor, breadboard, and jumper wires
+- [Node.js](https://nodejs.org/) v18 or newer
+- [STM32CubeIDE](https://www.st.com/en/development-tools/stm32cubeide.html) to compile and flash the firmware
+- A free [HiveMQ Cloud](https://www.hivemq.com/cloud/) cluster
+- A free [MongoDB Atlas](https://www.mongodb.com/cloud/atlas) cluster
 
 ### 1. Repository Setup
 
