@@ -2,6 +2,8 @@
 
 An STM32-based IoT prototype that reads ambient light and motion sensors to control a street light, then streams the sensor readings to a Node.js backend and a React dashboard over MQTT.
 
+![React Telemetry Dashboard](assets/dashboard-ui.png)
+
 ## Project Overview
 
 This is a course project on Microcontrollers using stm32 nucleo microcontroller and stm32CubeIDE. The STM32 Nucleo reads an LDR and a PIR sensor, decides whether to turn a connected LED on or off, and sends a small JSON packet over USB serial to a PC. A Node.js script running on that PC picks up the packet and forwards it to a HiveMQ Cloud MQTT broker over TLS. A second Node.js server subscribes to the same broker, persists readings to MongoDB Atlas, and pushes live updates to a React dashboard over Socket.io.
@@ -15,10 +17,14 @@ This is a course project on Microcontrollers using stm32 nucleo microcontroller 
 - **Node Offline Detection:** The backend keeps a 120-second timer per device ID. If no packet arrives within that window the server emits an `OFFLINE` status update over Socket.io.
 - **Throttled DB Writes:** Telemetry is saved to MongoDB Atlas at most once every 30 seconds per device during normal operation.
 - **Daytime Anomaly Alerts:** The `/api/alerts` endpoint returns records where the light was on (`light_status: true`) while the LDR reading indicated daytime (`ldr_value < 2500`).
-- **React Dashboard:** Shows all five nodes in a sidebar list, displays LDR value, motion state, and light status per node, plots a live LDR history chart (last 30 readings), and logs raw incoming packets in a collapsible terminal drawer at the bottom.
+- **React Dashboard:** Shows all five nodes in a sidebar list, displays LDR value, motion state, and light status per node, plots a live LDR history chart (last 30 readings), and logs raw incoming packets in a collapsible terminal drawer at the bottom (see [dashboard preview](assets/dashboard-ui.png)).
 - **Mock Scripts for Testing:** Three scripts let you test without physical hardware — a multi-node simulator, a single-node hardware emulator, and a custom one-shot publisher.
 
 ## Hardware
+
+Detailed wiring information and visual diagrams are provided in the [`hardware/`](hardware/) directory:
+- 📋 **[Pinout Specification & Text Diagram](hardware/pinout.md)**: Full pin tables, ADC/PWM timer configurations, logic levels, and wiring checklist.
+- 🖼️ **[Circuit Wiring Diagram](hardware/wiring-diagram.png)**: Visual schematic of the Nucleo board, sensors, LED, and breadboard connections.
 
 ### Components
 
