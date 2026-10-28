@@ -1,10 +1,10 @@
 # Smart Street Light Monitoring System
 
-An automated street light control and telemetry system using an STM32 microcontroller and an ESP-01 Wi-Fi module to regulate lighting levels based on environmental sensors and stream diagnostic data to a web dashboard.
+An automated street light telemetry and control system using an STM32 microcontroller to regulate lighting based on ambient conditions and stream sensor telemetry to a centralized web dashboard over MQTT.
 
 ## Project Overview
 
-The project implements a prototype smart street light that dynamically adjusts LED brightness using ambient light and motion detection, detects electrical bulb failures locally, and transmits telemetry over MQTT to a centralized web dashboard for real-time monitoring and historical logging.
+This project was developed as an embedded systems and IoT prototype to reduce unnecessary power consumption in municipal street lighting. The system monitors ambient daylight and pedestrian motion locally at each pole to switch between day shutoff and night illumination, while packaging environmental readings into JSON telemetry packets. These records are sent over a secure MQTT broker to a Node.js backend and a React dashboard for real-time fleet observation and historical logging.
 
 ## Features
 
