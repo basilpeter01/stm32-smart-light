@@ -20,22 +20,13 @@ This project was developed as an embedded systems and IoT prototype to reduce un
 
 ### Hardware Components
 
-| Component | Model / Type | Operating Voltage | Purpose |
+| Component | Specification / Model | Operating Voltage | Purpose |
 | :--- | :--- | :--- | :--- |
-| Microcontroller | STM32 Nucleo-64 (ARM Cortex-M4) | 3.3V | Sensor acquisition, PWM output, local fault evaluation |
-| Wi-Fi Module | ESP8266 ESP-01 | 3.3V (VCC / Logic) | UART-to-MQTT bridge over 802.11 b/g/n |
-| Ambient Light Sensor | LDR | 3.3V | Ambient daylight measurement via 12-bit ADC |
-| Motion Sensor | PIR Sensor (HC-SR501) | 5V Supply, 3.3V Logic | Digital presence and pedestrian detection |
-| Current Sensor | ACS712 Hall Effect Module | 5V Supply, 3.3V Scaled | Measures LED branch current draw in milliamps |
-| Light Source | High-Power White LED + Driver | 3.3V–12V (Circuit dependent) | PWM-controlled street lamp load |
-
-### Software & Cloud Services
-
-- **Embedded Firmware:** C/C++ using STM32Cube HAL and ESP8266 Arduino Core (`WiFiClientSecure`, `PubSubClient`)
-- **MQTT Broker:** HiveMQ Cloud Serverless (MQTTS on Port 8883)
-- **Backend Application:** Node.js, Express, `mqtt.js`, `socket.io`, `mongoose`
-- **Database:** MongoDB Atlas (M0 Free Tier)
-- **Frontend Dashboard:** React 18, Vite, Tailwind CSS, Recharts, Lucide React, Socket.io-client
+| Microcontroller | STM32 Nucleo-64 (STM32F401RE / Cortex-M4) | 3.3V Logic | Reads sensors, evaluates switching logic, sends UART packets |
+| Ambient Light Sensor | Photoresistor (LDR) in voltage divider | 3.3V | Measures ambient light level via 12-bit ADC |
+| Motion Sensor | HC-SR501 Passive Infrared (PIR) | 5V VCC, 3.3V Logic Out | Detects human motion via digital GPIO input |
+| Light Output | White LED module with current-limiting resistor | 3.3V / 5V | Simulates street light luminaire |
+| USB Connection | Micro-USB Cable (Nucleo ST-LINK / VCP) | 5V (USB Bus) | Powers Nucleo board and provides 115200 baud serial uplink |
 
 ## Circuit & Wiring
 
