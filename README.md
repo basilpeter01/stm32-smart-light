@@ -220,10 +220,10 @@ The backend adds `timestamp` and `status` before emitting to the dashboard:
 
 ## Known Limitations & Future Improvements
 
-- **Hall-Effect Sensor Noise at Low Currents:** The ACS712-05B sensor has a sensitivity of approximately 185 mV/A. When measuring low currents typical of small LED prototype loads (under 150 mA), thermal noise and analog reading jitter can produce minor fluctuations unless averaged over multiple ADC samples.
-- **In-Memory Server State:** The backend tracks active node status and heartbeat timers in memory (`Map`). If the server restarts, nodes appear offline until their next periodic heartbeat packet arrives. Future versions should hydrate initial state directly from the most recent MongoDB document per node.
-- **Unidirectional MQTT Topology:** The current architecture only implements uplink telemetry from edge nodes to cloud. Implementing downlink command topics would allow operators to manually override brightness levels or adjust sensor trigger thresholds from the dashboard.
+- **Single LDR threshold with no hysteresis:** The code switches the LED at a single ADC value (2500). Right around dusk and dawn, when ambient light is near that value, the LDR reading fluctuates and the LED can toggle rapidly. Adding hysteresis (separate on/off thresholds) or averaging a few readings before switching would fix this.
+- **In-memory node state is lost on restart:** The server tracks the most recent state for each device in a JavaScript `Map`. If the server process restarts, all nodes appear `OFFLINE` until the next packet arrives. Loading the most recent MongoDB document per node at startup would solve this.
+- **No downlink commands:** Telemetry only flows from the hardware to the cloud. There is no way from the dashboard to change the LDR threshold or force a light on/off. Adding a second MQTT topic for commands and reading it on the STM32 would make the system interactive.
 
 ## License
 
-This project is released under the [MIT License](LICENSE).
+This project is licensed under the [MIT License](LICENSE).
