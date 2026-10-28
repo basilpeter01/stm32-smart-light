@@ -28,20 +28,22 @@ This project was developed as an embedded systems and IoT prototype to reduce un
 | Light Output | White LED module with current-limiting resistor | 3.3V / 5V | Simulates street light luminaire |
 | USB Connection | Micro-USB Cable (Nucleo ST-LINK / VCP) | 5V (USB Bus) | Powers Nucleo board and provides 115200 baud serial uplink |
 
-## Circuit & Wiring
+### Pin Wiring
 
-| Source Pin (Sensor / Module) | Destination Pin (STM32 / ESP) | Logic Level | Connection Details / Notes |
+| Sensor / Module Pin | STM32 Nucleo Pin | Logic Level | Circuit Notes |
 | :--- | :--- | :--- | :--- |
-| LDR Voltage Divider Output | STM32 Pin PA0 (ADC1_IN0) | 3.3V Analog | 10kΩ pull-down resistor to GND |
-| PIR Sensor OUT | STM32 Pin PA1 (GPIO EXTI) | 3.3V Digital | Configured as input with pull-down |
-| ACS712 OUT | STM32 Pin PA4 (ADC1_IN4) | 3.3V Analog | Voltage-divided if sensor runs at 5V to protect MCU |
-| STM32 Timer Output (TIM2_CH1) | LED Driver Gate / Base (PA5) | 3.3V PWM | Driven via MOSFET or transistor driver |
-| STM32 USART2 TX (PA2) | ESP-01 RX (Pin 7) | 3.3V Serial | 115200 baud direct UART line |
-| STM32 USART2 RX (PA3) | ESP-01 TX (Pin 1) | 3.3V Serial | 115200 baud direct UART line |
-| ESP-01 CH_PD (EN) | 3.3V Rail | 3.3V Digital | Tied high via 10kΩ resistor for boot |
-| ESP-01 GPIO0 | 3.3V Rail | 3.3V Digital | Pulled high for normal flash boot |
-| ESP-01 GPIO2 | 3.3V Rail | 3.3V Digital | Pulled high at boot |
-| Common GND | System Ground Rail | 0V Reference | All grounds must be tied together |
+| LDR Divider Midpoint | PA0 (ADC1_IN0) | 3.3V Analog | 10 kΩ pull-down resistor to GND |
+| PIR OUT | PA1 (GPIO IN) | 3.3V Digital | Configured as input with internal pull-down |
+| LED Anode / Driver | PA5 (GPIO OUT / Timer) | 3.3V Digital | Connected in series with 220 Ω resistor to GND |
+| Common Ground | GND | 0V Reference | All board grounds tied to common rail |
+
+### Software & Tools
+
+- **Embedded Firmware:** C/C++ compiled via STM32CubeIDE (HAL drivers)
+- **Backend Application:** Node.js (v18+), Express, `mqtt.js`, `socket.io`, `mongoose`, `serialport`
+- **MQTT Broker:** HiveMQ Cloud Serverless (TLS / Port 8883)
+- **Database:** MongoDB Atlas (M0 Free Tier)
+- **Frontend Dashboard:** React 18, Vite, Tailwind CSS, Recharts, Lucide React, Socket.io Client
 
 ## Getting Started / Setup Instructions
 
