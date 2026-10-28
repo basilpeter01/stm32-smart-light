@@ -57,28 +57,46 @@ This is a course project on Microcontrollers using stm32 nucleo microcontroller 
 - A free [HiveMQ Cloud](https://www.hivemq.com/cloud/) cluster
 - A free [MongoDB Atlas](https://www.mongodb.com/cloud/atlas) cluster
 
-### 1. Repository Setup
-
-Clone the repository to your local machine:
+### 1. Clone the Repo
 
 ```bash
 git clone https://github.com/basilpeter01/stm32-smart-light.git
 cd stm32-smart-light
 ```
 
-### 2. Backend Configuration & Launch
+### 2. Flash the STM32
 
-1. Navigate to the backend directory and install dependencies:
+1. Wire the circuit according to the pin connection table above.
+2. Connect the Nucleo board to your PC via USB.
+3. Open the firmware project in STM32CubeIDE and flash it to the board.
+4. Note the COM port the Nucleo appears on (e.g. `COM3` on Windows, `/dev/ttyACM0` on Linux).
+
+### 3. Backend
+
+1. Navigate to `backend/` and install dependencies:
    ```bash
    cd backend
    npm install
    ```
 
-2. Create a `.env` file in `backend/` based on the provided `.env.example`.
-  
-3. Ensure MongoDB Atlas Network Access allows connections from your current IP (or `0.0.0.0/0` for cloud deployments).
+2. Copy the example env file and fill in your credentials:
+   ```bash
+   cp .env.example .env
+   ```
+   ```env
+   PORT=5000
+   MQTT_URL=mqtts://<your-cluster>.s1.eu.hivemq.cloud:8883
+   MQTT_USER=<your-hivemq-username>
+   MQTT_PASSWORD=<your-hivemq-password>
+   MONGO_URI=mongodb+srv://<user>:<pass>@cluster0.mongodb.net/smartlight?retryWrites=true&w=majority
+   SERIAL_PORT=COM3
+   SERIAL_BAUD=115200
+   FRONTEND_URL=http://localhost:5173
+   ```
 
-4. Start the backend server:
+3. In MongoDB Atlas, go to **Network Access** and allow your current IP (or `0.0.0.0/0` while developing).
+
+4. Start the ingestion server:
    ```bash
    npm start
    ```
