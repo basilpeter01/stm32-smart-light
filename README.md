@@ -158,30 +158,37 @@ npm run publish-custom
 
 ## How It Works
 
-```
-[ LDR (PA0) + PIR (PA1) ]
-         │
-         ▼  (GPIO & ADC reads → LED on PB4)
-  [ STM32 Nucleo ]  ──────────────────────────► [ LED ]
-         │
-         │  JSON over USB serial @ 115200 baud
-         ▼
-  [ serial-bridge.js (PC) ]
-         │
-         │  MQTTS / TLS, port 8883
-         ▼
-  [ HiveMQ Cloud Broker ]   ◄── [ mock-generator.js (LIGHT_02–05) ]
-         │
-         │  topic: smartlight/telemetry
-         ▼
-  [ server.js (Express + Socket.io) ]
-     ├── enriches packet with server timestamp
-     ├── resets 120s offline watchdog per device
-     ├── writes to MongoDB Atlas (throttled, 30s per node)
-     └── emits 'telemetry_update' over Socket.io
-         │
-         ▼
-  [ React Dashboard (Vite, port 5173) ]
+```mermaid
+flowchart LR
+    subgraph Hardware ["Hardware Layer (LIGHT_01)"]
+        direction TB
+        LDR["LDR Sensor (PA0)"] --> STM["STM32 Nucleo"]
+        PIR["PIR Motion Sensor (PA1)"] --> STM
+        STM -->|"LED Output (PB4)"| LED["Street Light LED"]
+    end
+
+    STM -->|"USB Serial (JSON)"| Bridge["serial-bridge.js (PC)"]
+
+    subgraph Cloud ["Cloud MQTT Broker"]
+        HiveMQ[("HiveMQ Cloud\n(TLS MQTTS)")]
+    end
+
+    Bridge -->|"Publish: smartlight/telemetry"| HiveMQ
+
+    subgraph Backend ["Cloud Backend"]
+        direction TB
+        Server["Node.js / Express Server"]
+        Mongo[("MongoDB Atlas")]
+        Server --> Mongo
+    end
+
+    HiveMQ -->|"Subscribe: smartlight/telemetry"| Server
+
+    subgraph Frontend ["Web Dashboard"]
+        Dashboard["React Dashboard\nLive Telemetry & Charts"]
+    end
+
+    Server -->|"Socket.io Stream"| Dashboard
 ```
 
 ### Telemetry Packet
