@@ -8,42 +8,44 @@ This is a course project on Microcontrollers using stm32 nucleo microcontroller 
 
 ## Features
 
-- **Autonomous Day/Night Switching:** Evaluates analog LDR readings against a defined threshold (ADC value 2500) to keep lights off during daylight hours and activate illumination at dusk.
-- **Motion-Triggered Lighting:** Reads a digital PIR sensor input to illuminate the lamp immediately upon detecting pedestrian or vehicle presence during night hours.
-- **TLS-Encrypted MQTT Transport:** Transmits serialized telemetry over port 8883 using MQTTS to a private HiveMQ Cloud broker.
-- **Real-Time Web Dashboard:** Displays node operational status, current light state, motion triggers, and an LDR history chart using React and WebSockets (Socket.io).
-- **Node Heartbeat Watchdog:** Automatically flags a node as `OFFLINE` if no packet is received within a 120-second timeout window.
-- **Database Write Throttling:** Batches steady-state telemetry to MongoDB Atlas at 30-second intervals per node to prevent excessive database writes while preserving recent history.
-- **Multi-Node Fleet Simulator:** Provides a test script (`mock-generator.js`) to simulate telemetry from multiple virtual poles (`LIGHT_02` through `LIGHT_05`) for system verification without physical hardware.
+- **LDR-Based Day/Night Detection:** Reads the LDR voltage divider on a 12-bit ADC. If the raw reading is below 2500 the system treats it as daylight and keeps the LED off; 2500 and above is treated as nighttime.
+- **Motion-Triggered Lamp:** In nighttime mode, the LED turns on when the PIR sensor detects motion and turns off when the signal goes low.
+- **USB Serial Bridge:** `serial-bridge.js` opens the Nucleo's virtual COM port at 115200 baud, prints each incoming JSON line to the terminal, and publishes it to HiveMQ Cloud over MQTTS (port 8883). If the port disconnects it retries every 3 seconds automatically.
+- **MQTT over TLS:** Both the serial bridge and the mock scripts connect to HiveMQ Cloud using `mqtts://` with username/password authentication and `rejectUnauthorized: true`.
+- **Node Offline Detection:** The backend keeps a 120-second timer per device ID. If no packet arrives within that window the server emits an `OFFLINE` status update over Socket.io.
+- **Throttled DB Writes:** Telemetry is saved to MongoDB Atlas at most once every 30 seconds per device during normal operation.
+- **Daytime Anomaly Alerts:** The `/api/alerts` endpoint returns records where the light was on (`light_status: true`) while the LDR reading indicated daytime (`ldr_value < 2500`).
+- **React Dashboard:** Shows all five nodes in a sidebar list, displays LDR value, motion state, and light status per node, plots a live LDR history chart (last 30 readings), and logs raw incoming packets in a collapsible terminal drawer at the bottom.
+- **Mock Scripts for Testing:** Three scripts let you test without physical hardware — a multi-node simulator, a single-node hardware emulator, and a custom one-shot publisher.
 
-## Hardware / Tech Stack
+## Hardware
 
-### Hardware Components
+### Components
 
-| Component | Specification / Model | Operating Voltage | Purpose |
-| :--- | :--- | :--- | :--- |
-| Microcontroller | STM32 Nucleo-64 (STM32F401RE / Cortex-M4) | 3.3V Logic | Reads sensors, evaluates switching logic, sends UART packets |
-| Ambient Light Sensor | Photoresistor (LDR) in voltage divider | 3.3V | Measures ambient light level via 12-bit ADC |
-| Motion Sensor | HC-SR501 Passive Infrared (PIR) | 5V VCC, 3.3V Logic Out | Detects human motion via digital GPIO input |
-| Light Output | White LED module with current-limiting resistor | 3.3V / 5V | Simulates street light luminaire |
-| USB Connection | Micro-USB Cable (Nucleo ST-LINK / VCP) | 5V (USB Bus) | Powers Nucleo board and provides 115200 baud serial uplink |
+| Component | Details | Purpose |
+| :--- | :--- | :--- |
+| Microcontroller | STM32 Nucleo-F411RE / F446RE (ARM Cortex-M4) | Reads sensors, drives LED, sends JSON over USB serial |
+| Ambient Light Sensor | Photoresistor (LDR) in a voltage divider with a 10 kΩ pull-down resistor | Measures ambient light level on a 12-bit ADC (0–4095) |
+| Motion Sensor | HC-SR501 PIR in retrigger mode | Detects motion as a digital GPIO input |
+| Light Output | Blue LED with 220 Ω series resistor | Simulates a street light load |
+| USB Cable | Micro-USB (Nucleo ST-LINK VCP) | Powers the board and provides the 115200 baud serial connection to PC |
 
-### Pin Wiring
+### Pin Connections
 
-| Sensor / Module Pin | STM32 Nucleo Pin | Logic Level | Circuit Notes |
-| :--- | :--- | :--- | :--- |
-| LDR Divider Midpoint | PA0 (ADC1_IN0) | 3.3V Analog | 10 kΩ pull-down resistor to GND |
-| PIR OUT | PA1 (GPIO IN) | 3.3V Digital | Configured as input with internal pull-down |
-| LED Anode / Driver | PA5 (GPIO OUT / Timer) | 3.3V Digital | Connected in series with 220 Ω resistor to GND |
-| Common Ground | GND | 0V Reference | All board grounds tied to common rail |
+| Signal | STM32 Pin | Notes |
+| :--- | :--- | :--- |
+| LDR voltage divider output | PA0 (ADC1_IN0) | 12-bit analog input |
+| PIR OUT | PA1 (GPIO_IN) | Digital input, 3.3V logic |
+| LED (via TIM3_CH1 PWM) | PB4 | Driven at 0%, 20%, or 100% duty cycle |
+| Common GND | GND | Board and breadboard ground tied together |
 
-### Software & Tools
+## Software & Tools
 
-- **Embedded Firmware:** C/C++ compiled via STM32CubeIDE (HAL drivers)
-- **Backend Application:** Node.js (v18+), Express, `mqtt.js`, `socket.io`, `mongoose`, `serialport`
-- **MQTT Broker:** HiveMQ Cloud Serverless (TLS / Port 8883)
+- **Firmware:** C/C++ in STM32CubeIDE using HAL drivers
+- **Backend:** Node.js (v18+), Express, `mqtt.js`, `socket.io`, `mongoose`, `serialport`
+- **MQTT Broker:** HiveMQ Cloud Serverless (MQTTS on port 8883)
 - **Database:** MongoDB Atlas (M0 Free Tier)
-- **Frontend Dashboard:** React 18, Vite, Tailwind CSS, Recharts, Lucide React, Socket.io Client
+- **Frontend:** React 18, Vite, Tailwind CSS, Recharts, Lucide React, Socket.io Client
 
 ## Getting Started / Setup Instructions
 
