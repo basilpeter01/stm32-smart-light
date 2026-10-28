@@ -128,40 +128,52 @@ cd stm32-smart-light
 
 ### 5. Testing Without Hardware
 
-If you do not have the physical hardware connected, you can run the mock simulation scripts from the `backend/` directory:
+There are three ways to send test data without the physical board:
 
-- **Run multi-pole fleet simulation (simulates 4 poles):**
-  ```bash
-  npm run mock
-  ```
-- **Send a single manual custom payload:**
-  Modify `backend/mock/custom-payload.json` as desired, then run:
-  ```bash
-  npm run publish-custom
-  ```
+**Simulate LIGHT_01 (the physical node) via the serial bridge mock mode:**
+```bash
+npm run serial-bridge:mock
+```
+This generates packets for `LIGHT_01` in a day/night cycle every 4 seconds and publishes them through the same serial bridge pipeline.
+
+**Simulate LIGHT_02 through LIGHT_05 (four virtual nodes):**
+```bash
+npm run mock
+```
+Each virtual node publishes independently on a random 4–7 second interval. Day/night is determined by your current system clock hour (night = 18:00–06:00).
+
+**Send a single custom payload:**
+Edit `backend/mock/custom-payload.json`, then run:
+```bash
+npm run publish-custom
+```
 
 ## How It Works
 
 ```
-[ LDR + PIR + ACS712 ]
-          │
-          ▼
-   [ STM32 Nucleo ] ──(Local Control)──► [ LED Driver (PWM) ]
-          │
-          ▼ (UART Serial @ 115200)
-    [ ESP-01 Module ]
-          │
-          ▼ (MQTTS over TLS Port 8883)
-  [ HiveMQ Cloud Broker ]
-          │
-          ▼ (Topic: smartlight/telemetry)
-  [ Node.js / Express Server ]
-     ├── In-Memory Heartbeat & Watchdog
-     ├── MongoDB Atlas (Throttled Records & Alerts)
-     └── Socket.io Broadcast
-          │
-          ▼
-  [ React Dashboard (Vite) ]
+[ LDR (PA0) + PIR (PA1) ]
+         │
+         ▼  (GPIO & ADC reads → LED on PB4)
+  [ STM32 Nucleo ]  ──────────────────────────► [ LED ]
+         │
+         │  JSON over USB serial @ 115200 baud
+         ▼
+  [ serial-bridge.js (PC) ]
+         │
+         │  MQTTS / TLS, port 8883
+         ▼
+  [ HiveMQ Cloud Broker ]   ◄── [ mock-generator.js (LIGHT_02–05) ]
+         │
+         │  topic: smartlight/telemetry
+         ▼
+  [ server.js (Express + Socket.io) ]
+     ├── enriches packet with server timestamp
+     ├── resets 120s offline watchdog per device
+     ├── writes to MongoDB Atlas (throttled, 30s per node)
+     └── emits 'telemetry_update' over Socket.io
+         │
+         ▼
+  [ React Dashboard (Vite, port 5173) ]
 ```
 
 1. **Edge Evaluation Loop:** The STM32 reads the LDR voltage divider on an analog pin. If the ADC reading is below 800 (night mode), it sets the LED to a 20% standby duty cycle. When the PIR sensor detects motion, it immediately raises the duty cycle to 100%. If ambient light is above 800 (day mode), the LED is forced to 0%.
