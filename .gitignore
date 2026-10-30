@@ -25,3 +25,13 @@ logs
 .DS_Store
 *.swp
 Thumbs.db
+
+# STM32CubeIDE build output
+firmware/Street Light/Debug/
+firmware/Street Light/Release/
+firmware/Street Light/.settings/
+
+# Temporary and backup files
+*.tmp
+*.bak
+*~
