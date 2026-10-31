@@ -238,20 +238,13 @@ The backend server receives the packet, attaches a timestamp and online status, 
 }
 ```
 
-### Decision Logic on the STM32
+### Backend API Endpoints
 
-1. Read the LDR ADC value continuously.
-2. If `ldr_value < 2500` → daytime → LED off regardless of motion.
-3. If `ldr_value >= 2500` → nighttime → LED on if PIR detects motion, off otherwise.
-4. Serialize the current state to JSON and send over USART at 115200 baud.
-
-### REST API
-
-| Endpoint | What it returns |
-| :--- | :--- |
-| `GET /api/nodes` | Latest known state of all registered nodes (from in-memory map) |
-| `GET /api/nodes/:id/history` | Last 50 `{timestamp, ldr_value, light_status}` records from MongoDB for a node |
-| `GET /api/alerts` | Records where `light_status` was `true` and `ldr_value < 2500` (light on during daytime) |
+| Endpoint | Method | Description |
+| :--- | :--- | :--- |
+| `/api/nodes` | `GET` | Returns the latest known state for all registered nodes |
+| `/api/nodes/:id/history` | `GET` | Returns the last 50 telemetry records for a given node |
+| `/api/alerts` | `GET` | Returns records where light was on during daytime (`ldr_value < 2500`) |
 
 ## Known Limitations & Future Improvements
 
