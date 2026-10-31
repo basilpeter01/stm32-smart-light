@@ -46,32 +46,31 @@ smart-street-light/
 - **Live React Dashboard:** Displays active nodes, live LDR readings, motion status, a rolling 30-point history chart, and a slide-out log drawer showing raw incoming packets.
 - **Hardware-Free Testing:** Includes mock generator scripts to simulate multiple street light poles (`LIGHT_01` through `LIGHT_05`) without needing multiple physical microcontrollers.
 
-## Hardware
+## Hardware Setup
 
-Detailed wiring information and visual diagrams are provided in the [`hardware/`](hardware/) directory:
-- 📋 **[Pinout Specification & Text Diagram](hardware/pinout.md)**: Full pin tables, ADC/PWM timer configurations, logic levels, and wiring checklist.
-- 🖼️ **[Circuit Wiring Diagram](hardware/wiring-diagram.png)**: Visual schematic of the Nucleo board, sensors, LED, and breadboard connections.
+Detailed pin descriptions, voltage levels, and breadboard hookups are documented in the [`hardware/`](hardware/) directory:
+- [Hardware Pinout Specification](hardware/pinout.md)
+- [Wiring Diagram](hardware/wiring-diagram.png)
 
-### Components
+### Parts Used
 
-| Component | Details | Purpose |
+| Component | Specification | Purpose |
 | :--- | :--- | :--- |
-| Microcontroller | STM32 Nucleo-F411RE / F446RE (ARM Cortex-M4) | Reads sensors, drives LED, sends JSON over USB serial |
-| Ambient Light Sensor | Photoresistor (LDR) in a voltage divider with a 10 kΩ pull-down resistor | Measures ambient light level on a 12-bit ADC (0–4095) |
-| Motion Sensor | HC-SR501 PIR in retrigger mode | Detects motion as a digital GPIO input |
-| Light Output | Blue LED with 220 Ω series resistor | Simulates a street light load |
-| USB Cable | Micro-USB (Nucleo ST-LINK VCP) | Powers the board and provides the 115200 baud serial connection to PC |
+| Microcontroller | STM32 Nucleo-F446RE (or F411RE) | Runs control logic, reads sensors, prints serial JSON |
+| Ambient Light Sensor | Photoresistor (LDR) module | Outputs analog voltage proportional to daylight |
+| Motion Sensor | HC-SR501 PIR sensor (set to retrigger mode) | Outputs 3.3V digital high when movement is detected |
+| Street Light Indicator | Blue / Green LED with 220 Ω resistor | Represents the physical street light lamp |
+| USB Connection | Micro-USB cable | Powers the Nucleo board and provides serial link to PC |
 
-### Pin Connections
+### Pin Mapping
 
-> For full connection details, alternate functions, and breadboard hookup notes, refer to the [Pinout Guide](hardware/pinout.md) and [Wiring Diagram](hardware/wiring-diagram.png).
-
-| Signal | STM32 Pin | Notes |
-| :--- | :--- | :--- |
-| LDR voltage divider output | PA0 (ADC1_IN0) | 12-bit analog input |
-| PIR OUT | PA1 (GPIO_IN) | Digital input, 3.3V logic |
-| LED (via TIM3_CH1 PWM) | PB4 | Driven at 0%, 20%, or 100% duty cycle |
-| Common GND | GND | Board and breadboard ground tied together |
+| Peripheral | Board Pin | Type | Function |
+| :--- | :--- | :--- | :--- |
+| LDR Module (AO) | `PA0` | Analog Input (`ADC1_IN0`) | Reads ambient light level (12-bit, 0–4095) |
+| PIR Sensor (OUT) | `PA1` / `PB0` | Digital Input (`GPIO_IN`) | Reads motion trigger |
+| LED Indicator | `PB4` / `PA5` | Digital / PWM Output | Lamp output |
+| USB Serial | `PA2` (TX) / `PA3` (RX) | `USART2` | 115200 baud serial connection to PC via ST-LINK |
+| Power Rails | `+5V`, `GND` | Power | Supplies 5V to sensor modules and common ground |
 
 ## Software & Tools
 
