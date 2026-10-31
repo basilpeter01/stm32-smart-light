@@ -1,6 +1,6 @@
 # Smart Street Light Monitoring System
 
-An STM32-based IoT prototype that reads ambient light and motion sensors to control a street light, then streams the sensor readings to a Node.js backend and a React dashboard over MQTT.
+A university microcontroller course project that uses an STM32 Nucleo board to read light and motion sensors, control an LED street light, and stream telemetry data to a Node.js backend and a React dashboard over MQTT.
 
 ![React Telemetry Dashboard](assets/dashboard-ui.png)
 
