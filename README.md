@@ -254,4 +254,4 @@ The backend server receives the packet, attaches a timestamp and online status, 
 
 ## License
 
-This project is licensed under the [MIT License](LICENSE).
+This project was developed for educational purposes under the [MIT License](LICENSE).
