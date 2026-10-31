@@ -6,7 +6,33 @@ A university microcontroller course project that uses an STM32 Nucleo board to r
 
 ## Project Overview
 
-This is a course project on Microcontrollers using stm32 nucleo microcontroller and stm32CubeIDE. The STM32 Nucleo reads an LDR and a PIR sensor, decides whether to turn a connected LED on or off, and sends a small JSON packet over USB serial to a PC. A Node.js script running on that PC picks up the packet and forwards it to a HiveMQ Cloud MQTT broker over TLS. A second Node.js server subscribes to the same broker, persists readings to MongoDB Atlas, and pushes live updates to a React dashboard over Socket.io.
+This project was built for a microcontrollers course to connect embedded hardware with a monitoring web interface. An STM32 Nucleo board reads analog photoresistor (LDR) and digital PIR motion sensor. When ambient light drops below a threshold and motion is detected, the microcontroller turns on the LED representing a street light. 
+
+Every 3 seconds, the microcontroller prints a JSON telemetry packet over USB serial to a connected PC. A Node.js serial bridge script forwards these packets over TLS to a HiveMQ Cloud MQTT broker. An Express backend subscribes to the broker, records data in MongoDB Atlas, and streams live updates to the web dashboard using Socket.io.
+
+## Repository Structure
+
+```text
+smart-street-light/
+├── assets/                  # Dashboard screenshots and architecture documentation
+├── backend/                 # Node.js server, serial bridge, and mock test scripts
+│   ├── mock/                # Simulation scripts for multi-node testing
+│   ├── serial-bridge.js     # Reads USB serial from STM32 and publishes to MQTT
+│   ├── server.js            # Express API, MongoDB storage, and Socket.io server
+│   └── .env.example         # Template for environment variables
+├── docs/                    # Deprecated reference notes
+├── firmware/                # STM32CubeIDE project files and bare-metal C code
+│   └── Street Light/
+│       ├── Core/            # Application code (main.c, adc.c, gpio.c, etc.)
+│       ├── Drivers/         # STM32 HAL and CMSIS driver files
+│       └── Street Light.ioc # CubeMX pin and peripheral configuration
+├── frontend/                # React dashboard built with Vite and Tailwind CSS
+│   └── src/                 # UI components, Socket.io client, and API services
+├── hardware/                # Hardware pin mapping and circuit diagram
+│   ├── pinout.md            # Detailed pin reference and text diagram
+│   └── wiring-diagram.png   # Breadboard and component wiring schematic
+└── README.md
+```
 
 ## Features
 
