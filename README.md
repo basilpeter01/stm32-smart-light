@@ -158,23 +158,21 @@ cd stm32-smart-light
 
 If you don't have the Nucleo board plugged in, you can test the backend and dashboard using the built-in mock scripts:
 
-**Simulate LIGHT_01 (the physical node) via the serial bridge mock mode:**
-```bash
-npm run serial-bridge:mock
-```
-This generates packets for `LIGHT_01` in a day/night cycle every 4 seconds and publishes them through the same serial bridge pipeline.
-
-**Simulate LIGHT_02 through LIGHT_05 (four virtual nodes):**
-```bash
-npm run mock
-```
-Each virtual node publishes independently on a random 4–7 second interval. Day/night is determined by your current system clock hour (night = 18:00–06:00).
-
-**Send a single custom payload:**
-Edit `backend/mock/custom-payload.json`, then run:
-```bash
-npm run publish-custom
-```
+- **Simulate the physical node (`LIGHT_01`):**
+  ```bash
+  cd backend
+  npm run serial-bridge:mock
+  ```
+- **Simulate four virtual light poles (`LIGHT_02` to `LIGHT_05`):**
+  ```bash
+  cd backend
+  npm run mock
+  ```
+- **Publish a single custom test reading:**
+  ```bash
+  cd backend
+  npm run publish-custom
+  ```
 
 ## How It Works
 
@@ -183,11 +181,11 @@ flowchart LR
     subgraph Hardware ["Hardware Layer (LIGHT_01)"]
         direction TB
         LDR["LDR Sensor (PA0)"] --> STM["STM32 Nucleo"]
-        PIR["PIR Motion Sensor (PA1)"] --> STM
-        STM -->|"LED Output (PB4)"| LED["Street Light LED"]
+        PIR["PIR Motion Sensor (PA1/PB0)"] --> STM
+        STM -->|"LED Control"| LED["Street Light LED"]
     end
 
-    STM -->|"USB Serial (JSON)"| Bridge["serial-bridge.js (PC)"]
+    STM -->|"USB Serial @ 115200 baud (JSON)"| Bridge["serial-bridge.js (PC)"]
 
     subgraph Cloud ["Cloud MQTT Broker"]
         HiveMQ[("HiveMQ Cloud\n(TLS MQTTS)")]
