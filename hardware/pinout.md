@@ -55,29 +55,6 @@ This document details the hardware pin mapping, wiring diagram, and peripheral c
                  |                     [ 1] PA3 (D0/RX)  |-------> (ST-LINK USB)
                  +---------------------------------------+
 
-========================================================================================
-                               PERIPHERAL HOOKUP
-========================================================================================
-
-1. LDR Ambient Light Sensor Module (LM393):
-   -----------------------------------------
-   [ VCC ] ----------------------------> +5V (CN6 pin 5)
-   [ GND ] ----------------------------> GND (CN6 pin 6)
-   [ DO  ] ----------------------------> (NC - Not Connected)
-   [ AO  ] ----------------------------> PA0 / A0 (CN8 pin 1) -> ADC1_IN0 (12-bit)
-
-2. HC-SR501 PIR Motion Sensor:
-   ---------------------------
-   [ VCC ] ----------------------------> +5V (CN6 pin 5)
-   [ GND ] ----------------------------> GND (CN6 pin 7)
-   [ OUT ] ----------------------------> PA1 / A1 (CN8 pin 2) -> GPIO Input (3.3V Logic)
-   *Note: Set jumper to "H" (re-triggering mode); adjust time-delay trimpot to ~3s.
-
-3. Street Light LED Load:
-   ----------------------
-   PB4 / D5 (CN9 pin 6) [TIM3_CH1 PWM] ---> [ Anode (+) ]
-                                                LED
-                                            [ Cathode (-) ] ---> [ 220 Ω ] ---> GND
 ```
 
 ---
