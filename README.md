@@ -246,11 +246,11 @@ The backend server receives the packet, attaches a timestamp and online status, 
 | `/api/nodes/:id/history` | `GET` | Returns the last 50 telemetry records for a given node |
 | `/api/alerts` | `GET` | Returns records where light was on during daytime (`ldr_value < 2500`) |
 
-## Known Limitations & Future Improvements
+## Known Technical Constraints & Potential Improvements
 
-- **Single LDR threshold with no hysteresis:** The code switches the LED at a single ADC value (2500). Right around dusk and dawn, when ambient light is near that value, the LDR reading fluctuates and the LED can toggle rapidly. Adding hysteresis (separate on/off thresholds) or averaging a few readings before switching would fix this.
-- **In-memory node state is lost on restart:** The server tracks the most recent state for each device in a JavaScript `Map`. If the server process restarts, all nodes appear `OFFLINE` until the next packet arrives. Loading the most recent MongoDB document per node at startup would solve this.
-- **No downlink commands:** Telemetry only flows from the hardware to the cloud. There is no way from the dashboard to change the LDR threshold or force a light on/off. Adding a second MQTT topic for commands and reading it on the STM32 would make the system interactive.
+- **Fixed Analog Threshold:** The threshold for deciding between day and night is fixed in code. At twilight, sensor readings hover around the threshold value, which can cause the light to switch states rapidly. Adding software hysteresis (different trigger levels for turn-on vs turn-off) or a moving average filter would prevent bouncing.
+- **In-Memory Device Map on Backend:** The backend keeps device presence in an in-memory `Map`. When the server restarts, nodes appear offline until their next periodic telemetry packet arrives. Storing and restoring the latest state from MongoDB on startup would provide persistence across server restarts.
+- **One-Way Communication:** Telemetry travels only from the microcontroller up to the cloud. The system does not currently accept downlink MQTT commands to manually toggle lamps or update threshold settings from the dashboard.
 
 ## License
 
