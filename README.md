@@ -203,15 +203,17 @@ flowchart LR
     HiveMQ -->|"Subscribe: smartlight/telemetry"| Server
 
     subgraph Frontend ["Web Dashboard"]
-        Dashboard["React Dashboard\nLive Telemetry & Charts"]
+        Dashboard["React Dashboard\nLive Telemetry & History"]
     end
 
     Server -->|"Socket.io Stream"| Dashboard
 ```
 
-### Telemetry Packet
+> A detailed explanation of each pipeline step is written in [assets/architecture-flow.md](assets/architecture-flow.md).
 
-The STM32 sends a line like this over serial. The serial bridge normalises field names and forwards it as-is:
+### Telemetry Data Flow
+
+The STM32 serial line sends a lightweight JSON object once every 3 seconds:
 
 ```json
 {
@@ -222,7 +224,7 @@ The STM32 sends a line like this over serial. The serial bridge normalises field
 }
 ```
 
-The backend adds `timestamp` and `status` before emitting to the dashboard:
+The backend server receives the packet, attaches a timestamp and online status, and broadcasts it to the frontend:
 
 ```json
 {
