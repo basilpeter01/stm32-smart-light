@@ -36,15 +36,15 @@ smart-street-light/
 
 ## Features
 
-- **LDR-Based Day/Night Detection:** Reads the LDR voltage divider on a 12-bit ADC. If the raw reading is below 2500 the system treats it as daylight and keeps the LED off; 2500 and above is treated as nighttime.
-- **Motion-Triggered Lamp:** In nighttime mode, the LED turns on when the PIR sensor detects motion and turns off when the signal goes low.
-- **USB Serial Bridge:** `serial-bridge.js` opens the Nucleo's virtual COM port at 115200 baud, prints each incoming JSON line to the terminal, and publishes it to HiveMQ Cloud over MQTTS (port 8883). If the port disconnects it retries every 3 seconds automatically.
-- **MQTT over TLS:** Both the serial bridge and the mock scripts connect to HiveMQ Cloud using `mqtts://` with username/password authentication and `rejectUnauthorized: true`.
-- **Node Offline Detection:** The backend keeps a 120-second timer per device ID. If no packet arrives within that window the server emits an `OFFLINE` status update over Socket.io.
-- **Throttled DB Writes:** Telemetry is saved to MongoDB Atlas at most once every 30 seconds per device during normal operation.
-- **Daytime Anomaly Alerts:** The `/api/alerts` endpoint returns records where the light was on (`light_status: true`) while the LDR reading indicated daytime (`ldr_value < 2500`).
-- **React Dashboard:** Shows all five nodes in a sidebar list, displays LDR value, motion state, and light status per node, plots a live LDR history chart (last 30 readings), and logs raw incoming packets in a collapsible terminal drawer at the bottom (see [dashboard preview](assets/dashboard-ui.png)).
-- **Mock Scripts for Testing:** Three scripts let you test without physical hardware — a multi-node simulator, a single-node hardware emulator, and a custom one-shot publisher.
+- **Automatic Night Lighting:** Reads an analog LDR using a 12-bit ADC. If ambient light is low and the PIR sensor detects motion, the street light turns on.
+- **Timed Shutoff:** When motion triggers the lamp at night, an internal timer keeps the light on for 5 seconds before switching off if no new motion is detected.
+- **Serial Output:** The microcontroller formats telemetry as standard JSON strings and sends them over the ST-LINK USB Virtual COM port at 115200 baud.
+- **Serial-to-MQTT Bridge:** `serial-bridge.js` connects to the local serial port, parses JSON lines, and securely publishes them to HiveMQ Cloud over TLS (`mqtts://` on port 8883).
+- **Cloud Backend & Throttled Database Storage:** `server.js` subscribes to the MQTT telemetry topic and saves readings to MongoDB Atlas. Writes are throttled to once every 30 seconds per light pole to avoid unnecessary database overhead on free tiers.
+- **Node Disconnection Tracking:** If no telemetry arrives from a device for 120 seconds, the backend automatically flags it as offline and notifies the frontend.
+- **Daytime Anomaly Alerts:** An API endpoint flags instances where a light was turned on during daylight conditions (useful for identifying faulty switches or broken sensors).
+- **Live React Dashboard:** Displays active nodes, live LDR readings, motion status, a rolling 30-point history chart, and a slide-out log drawer showing raw incoming packets.
+- **Hardware-Free Testing:** Includes mock generator scripts to simulate multiple street light poles (`LIGHT_01` through `LIGHT_05`) without needing multiple physical microcontrollers.
 
 ## Hardware
 
