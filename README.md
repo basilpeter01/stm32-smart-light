@@ -249,7 +249,7 @@ The backend server receives the packet, attaches a timestamp and online status, 
 ## Known Technical Constraints & Potential Improvements
 
 - **Fixed Analog Threshold:** The threshold for deciding between day and night is fixed in code. At twilight, sensor readings hover around the threshold value, which can cause the light to switch states rapidly. Adding software hysteresis (different trigger levels for turn-on vs turn-off) or a moving average filter would prevent bouncing.
-- **In-Memory Device Map on Backend:** The backend keeps device presence in an in-memory `Map`. When the server restarts, nodes appear offline until their next periodic telemetry packet arrives. Storing and restoring the latest state from MongoDB on startup would provide persistence across server restarts.
+- **Live Node Presence Held in Memory:** While MongoDB Atlas stores all long-term telemetry and alert history, the live online/offline state for `GET /api/nodes` is kept in a runtime JavaScript `Map`. When the server restarts, this memory resets and nodes show as offline until their next packet arrives. Querying MongoDB on boot to preload the last recorded state for each node would keep the list populated across restarts.
 - **One-Way Communication:** Telemetry travels only from the microcontroller up to the cloud. The system does not currently accept downlink MQTT commands to manually toggle lamps or update threshold settings from the dashboard.
 
 ## License
