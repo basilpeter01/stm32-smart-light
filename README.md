@@ -102,9 +102,9 @@ cd stm32-smart-light
    FRONTEND_URL=http://localhost:5173
    ```
 
-3. In MongoDB Atlas, go to **Network Access** and allow your current IP (or `0.0.0.0/0` while developing).
+3. In MongoDB Atlas, go to **Network Access** and allow your current IP.
 
-4. Start the ingestion server:
+4. Start the server:
    ```bash
    npm start
    ```
