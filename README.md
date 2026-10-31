@@ -74,35 +74,35 @@ Detailed pin descriptions, voltage levels, and breadboard hookups are documented
 
 ## Software & Tools
 
-- **Firmware:** C/C++ in STM32CubeIDE using HAL drivers
-- **Backend:** Node.js (v18+), Express, `mqtt.js`, `socket.io`, `mongoose`, `serialport`
-- **MQTT Broker:** HiveMQ Cloud Serverless (MQTTS on port 8883)
-- **Database:** MongoDB Atlas (M0 Free Tier)
-- **Frontend:** React 18, Vite, Tailwind CSS, Recharts, Lucide React, Socket.io Client
+- **Firmware:** Bare-metal C in STM32CubeIDE using ST Hardware Abstraction Layer (HAL) libraries
+- **Backend:** Node.js (v18+), Express, `serialport`, `mqtt`, `socket.io`, `mongoose`
+- **MQTT Broker:** HiveMQ Cloud Serverless (MQTTS, TLS port 8883)
+- **Database:** MongoDB Atlas
+- **Frontend:** React 18, Vite, Tailwind CSS, Recharts, Socket.io client
 
-## Setup
+## Getting Started
 
-### What You Need
+### Prerequisites
 
-- STM32 Nucleo-F411RE or F446RE board, LDR, 10 kΩ resistor, HC-SR501 PIR sensor, a blue LED, 220 Ω resistor, breadboard, and jumper wires
-- [Node.js](https://nodejs.org/) v18 or newer
-- [STM32CubeIDE](https://www.st.com/en/development-tools/stm32cubeide.html) to compile and flash the firmware
-- A free [HiveMQ Cloud](https://www.hivemq.com/cloud/) cluster
-- A free [MongoDB Atlas](https://www.mongodb.com/cloud/atlas) cluster
+- [STM32CubeIDE](https://www.st.com/en/development-tools/stm32cubeide.html) (Version 1.8.0 or newer)
+- [Node.js](https://nodejs.org/) (Version 18 or newer)
+- A free [HiveMQ Cloud](https://www.hivemq.com/cloud/) account
+- A free [MongoDB Atlas](https://www.mongodb.com/cloud/atlas) account
 
-### 1. Clone the Repo
+### 1. Clone the Repository
 
 ```bash
 git clone https://github.com/basilpeter01/stm32-smart-light.git
 cd stm32-smart-light
 ```
 
-### 2. Flash the STM32
+### 2. Flash the Firmware
 
-1. Wire the circuit according to the [pinout guide](hardware/pinout.md) and [wiring diagram](hardware/wiring-diagram.png).
-2. Connect the Nucleo board to your PC via USB.
-3. Open the firmware project in STM32CubeIDE and flash it to the board.
-4. Note the COM port the Nucleo appears on (e.g. `COM3` on Windows, `/dev/ttyACM0` on Linux).
+1. Wire your sensors and LED according to [hardware/pinout.md](hardware/pinout.md).
+2. Connect the STM32 Nucleo board to your computer using a micro-USB cable.
+3. Open STM32CubeIDE and choose **File > Open Projects from File System...**, then browse to the `firmware/Street Light` folder.
+4. Build the project and click **Run** (or flash using the ST-LINK debugger).
+5. Open Device Manager on Windows (or run `ls /dev/ttyACM*` on Linux) to find your ST-LINK Virtual COM port (e.g. `COM3`).
 
 ### 3. Backend
 
