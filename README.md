@@ -104,64 +104,59 @@ cd stm32-smart-light
 4. Build the project and click **Run** (or flash using the ST-LINK debugger).
 5. Open Device Manager on Windows (or run `ls /dev/ttyACM*` on Linux) to find your ST-LINK Virtual COM port (e.g. `COM3`).
 
-### 3. Backend
+### 3. Backend Setup
 
-1. Navigate to `backend/` and install dependencies:
+1. Open a terminal in the `backend/` folder and install dependencies:
    ```bash
    cd backend
    npm install
    ```
 
-2. Copy the example env file and fill in your credentials:
+2. Create your `.env` configuration file:
    ```bash
    cp .env.example .env
    ```
+
+3. Fill in your credentials in `.env`:
    ```env
    PORT=5000
-   MQTT_URL=mqtts://<your-cluster>.s1.eu.hivemq.cloud:8883
+   MQTT_URL=mqtts://<your-cluster-id>.s1.eu.hivemq.cloud:8883
    MQTT_USER=<your-hivemq-username>
    MQTT_PASSWORD=<your-hivemq-password>
-   MONGO_URI=mongodb+srv://<user>:<pass>@cluster0.mongodb.net/smartlight?retryWrites=true&w=majority
+   MONGO_URI=mongodb+srv://<user>:<password>@cluster0.mongodb.net/smartlight?retryWrites=true&w=majority
    SERIAL_PORT=COM3
    SERIAL_BAUD=115200
    FRONTEND_URL=http://localhost:5173
    ```
 
-3. In MongoDB Atlas, go to **Network Access** and allow your current IP.
-
-4. Start the server:
+4. Start the backend server:
    ```bash
    npm start
    ```
 
-5. In a separate terminal, start the USB serial bridge (reads from the Nucleo and publishes to HiveMQ):
+5. In a second terminal, start the serial bridge to read from the STM32 and forward packets to HiveMQ:
    ```bash
    npm run serial-bridge
    ```
 
-### 4. Frontend
+### 4. Frontend Setup
 
-1. Navigate to `frontend/` and install dependencies:
+1. In a new terminal, navigate to `frontend/` and install dependencies:
    ```bash
    cd frontend
    npm install
    ```
 
-2. If your backend is not running on `localhost:5000`, create a `.env` file in `frontend/`:
-   ```env
-   VITE_BACKEND_URL=http://localhost:5000
-   ```
-
-3. Start the dev server:
+2. Start the Vite development server:
    ```bash
    npm run dev
    ```
 
-4. Open `http://localhost:5173` in your browser to view the [live dashboard](assets/dashboard-ui.png).
+3. Open `http://localhost:5173` in your browser to view the dashboard.
 
-### 5. Testing Without Hardware
+### 5. Testing Without Physical Hardware
 
-There are three ways to send test data without the physical board:
+If you don't have the Nucleo board plugged in, you can test the backend and dashboard using the built-in mock scripts:
 
 **Simulate LIGHT_01 (the physical node) via the serial bridge mock mode:**
 ```bash
