@@ -1,6 +1,6 @@
 {
   "device_id": "LIGHT_01",
-  "light_status": false,
-  "ldr_value": 1000,
+  "light_status": true,
+  "ldr_value": 2100,
   "motion_detected": true
 }

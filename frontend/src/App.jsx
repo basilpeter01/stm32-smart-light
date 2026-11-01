@@ -112,7 +112,8 @@ export default function App() {
       const newPoint = {
         timestamp: packet.timestamp || Date.now(),
         ldr_value: Number(packet.ldr_value ?? packet.ambient_light_adc) || 0,
-        light_status: Boolean(packet.light_status)
+        light_status: Boolean(packet.light_status),
+        motion_detected: Boolean(packet.motion_detected ?? packet.motion)
       };
       return {
         ...prev,
